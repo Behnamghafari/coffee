@@ -35,7 +35,7 @@ const userRouter =  require('./model/users/userRouter')
 // const orderRouter =  require('./model/orders/orderRouter') 
 const helmet = require('helmet');
 const cors = require('cors');
-
+app.use(express.static('public'))
 
 // security
 app.disable('x-powered-by');

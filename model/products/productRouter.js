@@ -192,7 +192,7 @@ router.post('/newproduct',
 
 
 // لیست محصولات (برای همه کاربران)
-router.get('/', async (req, res) => {
+router.get('/products', async (req, res) => {
   try {
     const { category, search, available } = req.query;
     const where = {};
@@ -247,7 +247,7 @@ router.put('/:id', authAndRole(['modir', 'admin', 'superAdmin']), async (req, re
 });
 
 // حذف محصول (فقط مدیر اصلی)
-router.delete('/:id', authAndRole(['modir']), async (req, res) => {
+router.delete('/deleteproduct/:id', authAndRole(['modir']), async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) {
