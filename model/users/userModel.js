@@ -67,11 +67,14 @@ const User = sequelize.define('User', {
   defaultScope: {
     attributes: { exclude: ['password'] }
   },
-  scopes: {
-    withPassword: {
-      attributes: {}
-    }
+ defaultScope: {
+  attributes: { exclude: [] } // حذف محدودیت پیش‌فرض
+},
+scopes: {
+  withoutPassword: {
+    attributes: { exclude: ['password'] }
   }
+}
 });
 
 // تعریف ارتباطات

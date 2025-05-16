@@ -4,7 +4,7 @@ const config = require("dotenv").config();
 
 
 // middlewares/authAndRole.js
-const { User } = require('../model/users/userModel');
+const User = require('../model/users/userModel');
 
 /**
  * میدلور ترکیبی احراز هویت و کنترل نقش
@@ -21,8 +21,11 @@ const authAndRole = (allowedRoles = [], options = {}) => {
   return async (req, res, next) => {
     try {
       // 1. بررسی وجود توکن در هدر Authorization
-      const authHeader = req.headers['authorization'];
+      const authHeader = req.get('Authorization');
       const token = authHeader && authHeader.split(' ')[1];
+      // const token = authHeader 
+      console.log(' token :' ,  token )
+      
       
       if (!token) {
         return res.status(401).json({ 
@@ -32,6 +35,7 @@ const authAndRole = (allowedRoles = [], options = {}) => {
 
       // 2. اعتبارسنجی توکن JWT
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log(' decoded :' ,  decoded )
       
       // 3. یافتن کاربر در دیتابیس
       const user = await User.findByPk(decoded.userId, {

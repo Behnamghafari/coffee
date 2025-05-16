@@ -1,10 +1,11 @@
 const express = require('express');
 const path = require('path');
 const app =  express()
+require('dotenv').config()
 const { ValidationError, UniqueConstraintError, DatabaseError } = require('sequelize');
 const httpStatus = require('./utils/http-status-codes');
-const logger = require('./utils/logger'); // در صورت استفاده از سیستم لاگینگ
-
+const logger = require('./utils/logger');
+const PORT = process.env.PORT ;
 
 
 
@@ -40,32 +41,25 @@ const cors = require('cors');
 app.disable('x-powered-by');
 app.use(helmet());
 app.use(cors());
-// مسدود کردن دسترسی به فایل‌های خاص
-// app.use((req, res, next) => {
-//   const forbiddenFiles = ["package.json", "server.js", ".env"];
-//   if (forbiddenFiles.includes(path.basename(req.path))) {
-//       return res.status(403).send("Access forbidden");
-//   }
-//   next();
-// });
+//مسدود کردن دسترسی به فایل‌های خاص
+app.use((req, res, next) => {
+  const forbiddenFiles = ["package.json", "server.js", ".env"];
+  if (forbiddenFiles.includes(path.basename(req.path))) {
+      return res.status(403).send("Access forbidden");
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname,"public")));
 
-
 //routes
+app.use('/uploads', express.static('uploads'));
 app.use('/',productRouter)
 app.use('/',userRouter)
 // app.use('/',orderRouter)
 
 
-
-
-//error handler
-// app.use((err, req, res, next) => {
-//     console.log(err.stack);
-//     res.status(500).json({ error: 'خطای سرور' + err });
-//   });
 
 
 
@@ -104,11 +98,11 @@ app.use('/',userRouter)
  */
 
 
-// app.use((req,res,next,err)=>{
-//   console.clear()
-//   return console.log(' err.message :' ,  err.message )
+app.use((req,res,next,err)=>{
+  console.clear()
+  return console.log(' err.message :' ,  err.message )
   
-// // })
+})
 // app.use((err, req, res, next) => {
 //   // تنظیم مقادیر پیش‌فرض برای خطا
 //   err.status = err.status || httpStatus.INTERNAL_SERVER_ERROR;
@@ -132,16 +126,16 @@ app.use('/',userRouter)
 //     }
 //   });
 
-  // پاسخ مناسب بر اساس نوع خطا
-  // let response = {
-  //   error: {
-  //     code: err.code,
-  //     message: err.message,
-  //     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  //   }
-  // };
+//  // پاسخ مناسب بر اساس نوع خطا
+//   let response = {
+//     error: {
+//       code: err.code,
+//       message: err.message,
+//       ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+//     }
+//   };
 
-  // خطاهای خاص Sequelize
+//  // خطاهای خاص Sequelize
 //   if (err instanceof ValidationError) {
 //     err.status = httpStatus.BAD_REQUEST;
 //     err.code = 'VALIDATION_ERROR';
@@ -197,7 +191,9 @@ app.use('/',userRouter)
 // // راه‌اندازی سرور
 // // =============================================
 
-
+// const server = app.listen(PORT, () => {
+//   console.log(`سرور در حال اجرا روی پورت ${PORT}`);
+// });
 // // هندلرهای خطا برای راه‌اندازی سرور
 // process.on('unhandledRejection', (err) => {
 //   logger.error(`خطای unhandledRejection: ${err.message}`, { stack: err.stack });
@@ -217,10 +213,6 @@ app.use('/',userRouter)
 //   });
 // });
 
-
-const PORT = process.env.PORT;
-// const server = app.listen(PORT, () => {
-//   console.log(`سرور در حال اجرا روی پورت ${PORT}`);
-// });
+// }
 
 app.listen(PORT) 

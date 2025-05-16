@@ -18,8 +18,28 @@ const Product = sequelize.define('Product', {
       }
     }
   },
+  img: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    validate: {
+      len: {
+        args: [2, 100],
+        msg: 'نام محصول باید بین ۲ تا ۱۰۰ کاراکتر باشد'
+      }
+    }
+  },
+  aboute : {
+    type: DataTypes.TEXT(),
+    allowNull: true,
+    validate: {
+      len: {
+        args: [2, 100],
+        msg: 'نام محصول باید بین ۲ تا ۱۰۰ کاراکتر باشد'
+      }
+    }
+  },
   price: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.BIGINT,
     allowNull: false,
     validate: {
       min: {
@@ -37,6 +57,7 @@ const Product = sequelize.define('Product', {
       }
     }
   },
+
   stock: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
@@ -47,6 +68,7 @@ const Product = sequelize.define('Product', {
       }
     }
   },
+
   isAvailable: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
@@ -71,6 +93,7 @@ Product.associate = function(models) {
     as: 'orders'
   });
 };
+
 
 Product.associate = function() {
   const Order = require('../orders/orderModel');

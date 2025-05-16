@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ثبت نام در کافی‌شاپ ما</title>
+    <!-- Bootstrap 4 RTL -->
+    <!-- <link rel="stylesheet" href="https://cdn.rtlcss.com/bootstrap/v4.5.3/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="./bootstrap.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="fontawesome.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card register-card shadow-lg mt-5">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0 text-center">
+                            <i class="fas fa-coffee ml-2"></i>
+                            ثبت نام در کافی‌شاپ ما
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="registerForm" novalidate onsubmit="return false;">
+                            <div class="form-group">
+                                <label for="username">نام کاربری</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="username" required>
+                                    <div class="invalid-feedback">
+                                        لطفاً نام کاربری معتبر وارد کنید (حداقل ۳ کاراکتر)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">ایمیل</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                    </div>
+                                    <input type="email" class="form-control" id="email" required>
+                                    <div class="invalid-feedback">
+                                        لطفاً ایمیل معتبر وارد کنید
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">شماره تلفن</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                    </div>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password">رمز عبور</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    </div>
+                                    <input type="password" class="form-control" id="password" required>
+                                    <div class="invalid-feedback">
+                                        رمز عبور باید حداقل ۶ کاراکتر باشد
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword">تکرار رمز عبور</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                    </div>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                    <div class="invalid-feedback">
+                                        رمزهای عبور مطابقت ندارند
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    با <a href="#" data-toggle="modal" data-target="#termsModal">قوانین و شرایط</a> موافقم
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block mt-4">
+                                <i class="fas fa-user-plus ml-2"></i>
+                                ثبت نام
+                            </button>
+
+                            <div class="text-center mt-3">
+                                <p>قبلاً حساب کاربری دارید؟ <a href="login.html">ورود به سیستم</a></p>
+                            </div>
+                        </form>
+                    </div>
+
+<!-- بعد از مودال قوانین و قبل از اسکریپت‌ها -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle ml-2"></i>
+                    خطا در ثبت نام
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+                <!-- محتوای خطا اینجا نمایش داده می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">قوانین و شرایط استفاده</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>متن قوانین و شرایط استفاده از سرویس‌های کافی‌شاپ در اینجا قرار می‌گیرد...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script> -->
+    <!-- jQuery, Popper.js, Bootstrap JS -->
+    <script src="jquery.js"></script>
+    <script src="pooper.js"></script>
+    <script src="bootstrap.js"></script>
+    <!-- Custom JS -->
+    <script>
+        const url = 'http://localhost:2253'
+        localStorage.url = url
+ $(document).ready(function() {
+    // مدیریت ارسال فرم
+    $('#registerForm').submit(function(e) {
+        e.preventDefault();
+        validateAndSubmit();
+    });
+
+    // همچنین برای دکمه ثبت‌نام هندلر جداگانه اضافه می‌کنیم
+    $('#registerForm button[type="submit"]').click(function(e) {
+        e.preventDefault();
+        validateAndSubmit();
+    });
+});
+
+function validateAndSubmit() {
+    const form = $('#registerForm')[0];
+    
+    // ریست وضعیت اعتبارسنجی
+    $(form).removeClass('was-validated');
+    
+    // اعتبارسنجی سفارشی برای تطابق رمزهای عبور
+    const password = $('#password').val();
+    const confirmPassword = $('#confirmPassword').val();
+    
+    if (password !== confirmPassword) {
+        $('#confirmPassword').addClass('is-invalid');
+        showErrorModal('رمزهای عبور وارد شده مطابقت ندارند');
+        return;
+    }
+    
+    // اعتبارسنجی کلی فرم
+    if (form.checkValidity() === false) {
+        $(form).addClass('was-validated');
+        showErrorModal('لطفاً تمام فیلدهای ضروری را به درستی پر کنید');
+        return;
+    }
+    
+    // اگر فرم معتبر است
+    registerUser();
+}
+
+// تابع ثبت کاربر با مدیریت خطا
+function registerUser() {
+    const btn = $('#registerForm button[type="submit"]');
+    const originalText = btn.html();
+    
+    // نمایش اسپینر
+    btn.prop('disabled', true);
+    btn.html(`
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        در حال ثبت اطلاعات...
+    `);
+    
+    // جمع‌آوری داده‌های فرم
+    const formData = {
+        username: $('#username').val(),
+        email: $('#email').val(),
+        phone: $('#phone').val(),
+        password: $('#password').val()
+    };
+    
+    // ارسال درخواست به سرور (AJAX)
+    $.ajax({
+        // url: 'http://localhost:2253/register',
+        url: url+'/register',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            showSuccessModal('ثبت نام با موفقیت انجام شد! شما به صفحه ورود هدایت خواهید شد');
+            
+            // ریدایرکت به صفحه لاگین بعد از 3 ثانیه
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 3000);
+        },
+        error: function(xhr) {
+            let errorMessage = 'خطا در ارتباط با سرور';
+            
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.errors) {
+                    // خطاهای اعتبارسنجی از سرور
+                    errorMessage = Object.values(xhr.responseJSON.errors).join('<br>');
+                } else if (xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+            } else if (xhr.statusText) {
+                errorMessage = xhr.statusText;
+            }
+            
+            showErrorModal(errorMessage);
+        },
+        complete: function() {
+            btn.prop('disabled', false);
+            btn.html(originalText);
+        }
+    });
+}
+
+// تابع نمایش مودال خطا (بهبود یافته)
+function showErrorModal(message) {
+    // تنظیم محتوای مودال
+    $('#errorModalBody').html(`
+        <div class="alert alert-danger mb-0">
+            <i class="fas fa-exclamation-circle ml-2"></i>
+            ${message}
+        </div>
+    `);
+    
+    // تنظیم استایل هدر مودال
+    $('#errorModal .modal-header')
+        .removeClass('bg-success')
+        .addClass('bg-danger');
+        
+    $('#errorModal .modal-title').html(`
+        <i class="fas fa-exclamation-triangle ml-2"></i>
+        خطا در ثبت نام
+    `);
+    
+    // نمایش مودال
+    $('#errorModal').modal('show');
+}
+
+// تابع نمایش مودال موفقیت (بهبود یافته)
+function showSuccessModal(message) {
+    $('#errorModalBody').html(`
+        <div class="alert alert-success mb-0">
+            <i class="fas fa-check-circle ml-2"></i>
+            ${message}
+        </div>
+    `);
+    
+    $('#errorModal .modal-header')
+        .removeClass('bg-danger')
+        .addClass('bg-success');
+        
+    $('#errorModal .modal-title').html(`
+        <i class="fas fa-check-circle ml-2"></i>
+        موفقیت
+    `);
+    
+    $('#errorModal').modal('show');
+}
+    </script>
+</body>
+</html>

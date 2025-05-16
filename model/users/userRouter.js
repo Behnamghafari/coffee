@@ -97,14 +97,15 @@ router.post('/register', registerValidations, async (req, res) => {
 module.exports = router;
 
 // ورود کاربر
-router.post('/login', authLimiter, async (req, res) => {
+// router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
 
     // یافتن کاربر با نام کاربری یا ایمیل
     const user = await User.findOne({
-      where:{username:req.body.username}
+      where:{username}
     })
     // const user = await User.findOne({
     //   where: {
@@ -114,7 +115,7 @@ router.post('/login', authLimiter, async (req, res) => {
     // const usert = user.toJSON()
     console.log(' user :' ,  user )
     
-console.log(' user1 :' ,  user.role )
+console.log(' user1 :' ,  user.password )
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'اعتبارسنجی ناموفق بود' });
