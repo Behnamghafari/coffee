@@ -162,7 +162,8 @@
     
     <!-- Custom JS -->
     <script>
-        const url = localStorage.url
+        const url = 'http://localhost:2253'
+        localStorage.url = url
         $(document).ready(function() {
             // Form validation
             $('#loginForm').submit(function(e) {

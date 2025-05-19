@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سفارش محصول | کافی شاپ</title>
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .search-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .search-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-form {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        
+        .order-table {
+            margin-top: 30px;
+        }
+        
+        .order-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        
+        .submit-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4"><i class="fas fa-coffee me-2"></i>سفارش محصولات کافی شاپ</h1>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="order-form">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label for="productSearch" class="form-label">جستجوی محصول</label>
+                            <div class="search-container">
+                                <input type="text" id="productSearch" class="form-control" placeholder="نام محصول را جستجو کنید...">
+                                <div id="searchResults" class="search-results"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productQuantity" class="form-label">تعداد</label>
+                            <input type="number" id="productQuantity" class="form-control" min="1" value="1" placeholder="تعداد">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productPrice" class="form-label">قیمت واحد</label>
+                            <input type="text" id="productPrice" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productTotal" class="form-label">قیمت کل</label>
+                            <input type="text" id="productTotal" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-1">
+                            <button id="addToOrder" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive order-table">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>تصویر</th>
+                                <th>نام محصول</th>
+                                <th>تعداد</th>
+                                <th>قیمت واحد</th>
+                                <th>قیمت کل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderItems">
+                            <!-- سفارشات اینجا نمایش داده می‌شوند -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="4" class="text-end">جمع کل:</td>
+                                <td id="grandTotal">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="tableNumber" class="form-label">شماره میز</label>
+                        <input type="number" id="tableNumber" class="form-control" min="1" max="100" placeholder="شماره میز">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="customerNote" class="form-label">توضیحات سفارش (اختیاری)</label>
+                        <input type="text" id="customerNote" class="form-control" placeholder="توضیحات سفارش...">
+                    </div>
+                </div>
+                
+                <button id="submitOrder" class="btn btn-success submit-btn">
+                    <i class="fas fa-paper-plane me-2"></i>ارسال سفارش
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="io.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // اتصال به سوکت
+            // const socket = io();
+             const socket = io(localStorage.url, { 
+    transports: ['websocket', 'polling'] 
+  });
+            
+  socket.on('connect', () => {
+    console.log('Connected to server');
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('Connection error:', err);
+  });
+            // ذخیره محصولات در localStorage
+            let products = [];
+            
+            // لیست سفارشات
+            let orderItems = [];
+            
+      function loadProducts() {
+   
+
+    // بررسی وجود محصولات در localStorage
+    const cachedProducts = localStorage.getItem('cafeProducts');
+    if (cachedProducts) {
+        try {
+            products = JSON.parse(cachedProducts);
+            console.log('محصولات از حافظه مرورگر بارگیری شدند:', products);
+            return;
+        } catch (e) {
+            console.error('خطا در خواندن محصولات از حافظه:', e);
+            localStorage.removeItem('cafeProducts');
+        }
+    }
+    
+    // دریافت محصولات از سرور
+    $.ajax({
+        url: localStorage.url + '/products/list',
+        method: 'GET',
+        success: function(data) {
+            if (data && Array.isArray(data)) {
+                products = data.map(p => ({
+                    ...p,
+                    // مطمئن شویم isAvailable وجود دارد
+                    isAvailable: p.isAvailable !== false
+                }));
+                localStorage.setItem('cafeProducts', JSON.stringify(products));
+                console.log('محصولات از سرور دریافت و ذخیره شدند:', products);
+            } else {
+                console.error('داده دریافتی نامعتبر است:', data);
+            }
+        },
+        error: function(error) {
+            console.error('خطا در دریافت محصولات:', error);
+            // استفاده از داده‌های پیش‌فرض در صورت خطا
+            products = [];
+        }
+    });
+}
+            
+            // بارگیری اولیه محصولات
+            loadProducts();
+            
+            // جستجوی محصول
+            $('#productSearch').on('input', async function() {
+                const searchTerm = $(this).val().trim().toLowerCase();
+                const resultsContainer = $('#searchResults');
+                
+                if (searchTerm.length < 2) {
+                    resultsContainer.hide();
+                    return;
+                }
+                // const fetchedData = await fetch(localStorage.url+"/products/list")
+                // let products = await fetchedData.json()
+                console.log(' products :' ,  products )
+                console.log(' searchTerm :' ,  searchTerm )
+                
+                // فیلتر کردن محصولات بر اساس عبارت جستجو
+                const filteredProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) 
+                );
+                console.log(' filteredProducts :' ,  filteredProducts )
+                
+                // نمایش نتایج
+                if (filteredProducts.length > 0) {
+                    let html = '';
+                    filteredProducts.forEach(product => {
+                        html += `
+                            <div class="search-item" data-id="${product.id}" 
+                                 data-name="${product.name}" 
+                                 data-price="${product.price}">
+                                <div class="d-flex align-items-center">
+                                    ${product.img ? `<img src="${localStorage.url + product.img}" class="product-img me-2" alt="${product.name}">` : ''}
+                                    <div>
+                                        <h6 class="mb-0">${product.name}</h6>
+                                        <small class="text-muted">${product.price.toLocaleString()} تومان - ${product.category}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    resultsContainer.html(html).show();
+                } else {
+                    resultsContainer.html('<div class="search-item text-muted p-3">محصولی یافت نشد</div>').show();
+                }
+            });
+            
+            // انتخاب محصول از نتایج جستجو
+            $(document).on('click', '.search-item', function() {
+                const productId = $(this).data('id');
+                const productName = $(this).data('name');
+                const productPrice = $(this).data('price');
+                
+                $('#productSearch').val(productName).attr('data-id', productId);
+                $('#productPrice').val(productPrice.toLocaleString());
+                $('#productQuantity').val(1).focus();
+                calculateTotal();
+                $('#searchResults').hide();
+            });
+            
+            // محاسبه قیمت کل
+            function calculateTotal() {
+                const quantity = parseInt($('#productQuantity').val()) || 1;
+                const price = parseFloat($('#productPrice').val().replace(/,/g, '')) || 0;
+                const total = quantity * price;
+                
+                $('#productTotal').val(total.toLocaleString());
+            }
+            
+            // تغییر تعداد
+            $('#productQuantity').on('input', calculateTotal);
+            
+            // اضافه کردن محصول به سفارش
+            $('#addToOrder').on('click', function() {
+                addToOrder();
+            });
+            
+            // با زدن اینتر روی تعداد، محصول اضافه می‌شود
+            $('#productQuantity').on('keypress', function(e) {
+                if (e.which === 13) {
+                    addToOrder();
+                    return false;
+                }
+            });
+            
+            // تابع اضافه کردن محصول به سفارش
+            function addToOrder() {
+                const productId = $('#productSearch').attr('data-id');
+                const productName = $('#productSearch').val();
+                const priceText = $('#productPrice').val();
+                const quantity = parseInt($('#productQuantity').val()) || 1;
+                
+                if (!productId || !productName || !priceText) {
+                    alert('لطفاً ابتدا یک محصول انتخاب کنید');
+                    return;
+                }
+                
+                const price = parseFloat(priceText.replace(/,/g, ''));
+                const total = price * quantity;
+                
+                // پیدا کردن تصویر محصول
+                const product = products.find(p => p.id == productId);
+                const productImg = product?.img || '';
+                
+                // اضافه کردن به لیست سفارشات
+                orderItems.push({
+                    id: productId,
+                    name: productName,
+                    img: productImg,
+                    price: price,
+                    quantity: quantity,
+                    total: total
+                });
+                
+                // رندر کردن جدول سفارشات
+                renderOrderItems();
+                
+                // ریست کردن فرم
+                resetForm();
+            }
+            
+            // رندر کردن لیست سفارشات
+            function renderOrderItems() {
+                const tbody = $('#orderItems');
+                tbody.empty();
+                
+                let grandTotal = 0;
+                
+                orderItems.forEach((item, index) => {
+                    grandTotal += item.total;
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>
+                                ${item.img ? `<img src="${item.img}" class="product-img" alt="${item.name}">` : ''}
+                            </td>
+                            <td>${item.name}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.price.toLocaleString()}</td>
+                            <td>${item.total.toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm remove-item" data-index="${index}">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+                
+                // به‌روزرسانی جمع کل
+                $('#grandTotal').text(grandTotal.toLocaleString());
+            }
+            
+            // حذف آیتم از سفارش
+            $(document).on('click', '.remove-item', function() {
+                const index = $(this).data('index');
+                orderItems.splice(index, 1);
+                renderOrderItems();
+            });
+            
+            // ریست کردن فرم
+            function resetForm() {
+                $('#productSearch').val('').removeAttr('data-id');
+                $('#productPrice').val('');
+                $('#productQuantity').val(1);
+                $('#productTotal').val('');
+                $('#productSearch').focus();
+            }
+            
+            // ارسال سفارش
+            $('#submitOrder').on('click',async function() {
+                const tableNumber = $('#tableNumber').val();
+                
+                if (orderItems.length === 0) {
+                    alert('لطفاً حداقل یک محصول به سفارش اضافه کنید');
+                    return;
+                }
+                
+                if (!tableNumber || tableNumber < 1 || tableNumber > 100) {
+                    alert('لطفاً شماره میز را وارد کنید (بین 1 تا 100)');
+                    return;
+                }
+                
+                const customerNote = $('#customerNote').val();
+                
+                // آماده کردن داده‌های سفارش
+                const orderData = {
+                    tableNumber: parseInt(tableNumber),
+                    products: orderItems.map(item => ({
+                        productId: item.id,
+                        quantity: item.quantity,
+                        specialRequest: ''
+                    })),
+                    customerNote: customerNote
+                };
+                try {
+                    const request = await fetch(localStorage.url + '/guest-order',{
+                        method: 'POST',
+                        body: JSON.stringify( orderData ),
+                        headers: {
+                            'Authorization':`Bearer ${localStorage.getItem('token')}`,
+                            "Content-Type" : 'application/json'
+                    }
+                })
+                const responseData = await request.json();
+                console.log(' orderData :' ,  orderData )
+                } catch (error) {
+                   console.log(' error :' ,  error )
+                    
+                }
+                
+                
+                // ارسال سفارش از طریق سوکت
+                socket.emit('new-order', orderData);
+                
+                // نمایش پیام موفقیت
+                alert('سفارش شما با موفقیت ثبت شد و در حال آماده‌سازی است');
+                
+                // ریست کردن فرم
+                orderItems = [];
+                renderOrderItems();
+                $('#tableNumber').val('');
+                $('#customerNote').val('');
+            });
+            
+            // مدیریت رویدادهای سوکت
+            socket.on('order-status-updated', function(data) {
+                console.log('وضعیت سفارش به‌روزرسانی شد:', data);
+            });
+            
+            socket.on('connect_error', function(error) {
+                console.error('خطا در اتصال به سرور:', error);
+                alert('خطا در اتصال به سرور. لطفاً صفحه را رفرش کنید');
+            });
+        });
+    </script>
+</body>
+</html>

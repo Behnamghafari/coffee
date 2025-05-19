@@ -8,62 +8,75 @@ const Order = sequelize.define('Order', {
     primaryKey: true,
     autoIncrement: true
   },
-  totalAmount: {
-    type: DataTypes.DECIMAL(10, 2),
+  userId: {
+    type : DataTypes.INTEGER,
+  },
+  deliveredAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  tableNumber: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     validate: {
-      min: {
-        args: [0],
-        msg: 'مبلغ کل نمی‌تواند منفی باشد'
-      }
+      min: 1,
+      max: 100
     }
   },
   status: {
-    type: DataTypes.ENUM('pending', 'processing', 'completed', 'cancelled'),
-    defaultValue: 'pending',
-    validate: {
-      isIn: {
-        args: [['pending', 'processing', 'completed', 'cancelled']],
-        msg: 'وضعیت سفارش نامعتبر است'
-      }
-    }
+    type: DataTypes.ENUM('pending', 'preparing', 'ready', 'delivered', 'cancelled'),
+    defaultValue: 'pending'
   },
-  paymentMethod: {
-    type: DataTypes.ENUM('cash', 'credit', 'online'),
+  totalPrice: {
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
     validate: {
-      isIn: {
-        args: [['cash', 'credit', 'online']],
-        msg: 'روش پرداخت نامعتبر است'
-      }
+      min: 0
     }
   },
-  paymentStatus: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
+  customerNote: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  // اضافه کردن فیلد products به عنوان JSON
+  products: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: []
   }
 }, {
   timestamps: true,
-  paranoid: true
+  paranoid: true,
+  hooks: {
+    beforeValidate: (order) => {
+      if (order.products && Array.isArray(order.products)) {
+        // محاسبه قیمت کل بر اساس محصولات
+        order.totalPrice = order.products.reduce((total, product) => {
+          return total + (product.price * product.quantity);
+        }, 0);
+      }
+    }
+  }
 });
 
-// تعریف ارتباطات
-Order.associate = function() {
-  const User = require('../users/userModel');
-  const Product = require('../products/productModel');
-  const OrderProduct = require('../orderProduct/orderProductModel');
-  
-  Order.belongsTo(User, {
-    foreignKey: 'userId',
-    as: 'user'
-  });
-  
-  Order.belongsToMany(Product, {
-    through: OrderProduct,
-    foreignKey: 'orderId',
-    as: 'products'
-  });
-};
+// اگر نیاز به ارتباط با مدل Product دارید
+// const Users = require('../users/userModel');
+// const OrderProduct = require('../orderProduct/orderProductModel');
+// Order.associate = function(models) {
+//   Order.belongsToMany(Product, {
+//     through: 'OrderProducts',
+//     foreignKey: 'orderId',
+//     as: 'productItems'
+//   });
+// };
+
+  // Order.hasMany(Users, {
+  //   // through: OrderProduct,
+  //   foreignKey: 'userId',
+  //   as: 'users'
+  // });
+
+  sequelize.sync({alter:true})
 
 
 module.exports = Order;

@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>افزودن محصول جدید | کافی شاپ</title>
-    <!-- Bootstrap 4 RTL -->
-     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <!-- Bootstrap 4 RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- Custom CSS -->
     <style>
         :root {
@@ -481,12 +481,50 @@
     </div>
 
     <!-- jQuery, Popper.js, Bootstrap JS -->
-    <script src="jquery.js"></script>
+ <script src="jquery.js"></script>
     <script src="pooper.js"></script>
     <script src="bootstrap.js"></script>
-    
+    <script src="alert.js"></script>
     <!-- Custom JS -->
     <script>
+            $(document).ready(function() {
+            // Sidebar Toggle
+            $('#sidebarCollapse').on('click', function() {
+                $('#sidebar').toggleClass('collapsed');
+                $('.sidebar-header h3').toggleClass('d-none');
+                $('.sidebar-text').toggleClass('d-none');
+                $('.nav-link').toggleClass('justify-content-center');
+            });
+            
+            // Active Menu Item
+            $('.nav-link').on('click', function() {
+                $('.nav-link').removeClass('active');
+                $(this).addClass('active');
+            });
+            
+            // Keep dropdown open when clicking on items
+            $('.dropdown-item').on('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Responsive Sidebar
+            $(window).resize(function() {
+                if ($(window).width() <= 768) {
+                    $('#sidebar').addClass('collapsed');
+                    $('.sidebar-header h3').addClass('d-none');
+                    $('.sidebar-text').addClass('d-none');
+                    $('.nav-link').addClass('justify-content-center');
+                } else {
+                    $('#sidebar').removeClass('collapsed');
+                    $('.sidebar-header h3').removeClass('d-none');
+                    $('.sidebar-text').removeClass('d-none');
+                    $('.nav-link').removeClass('justify-content-center');
+                }
+            });
+            
+            // Trigger resize on load
+            $(window).trigger('resize');
+        });
     var imgUrl = "#";
 
    document.addEventListener('DOMContentLoaded', function() {

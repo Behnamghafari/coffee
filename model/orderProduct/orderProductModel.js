@@ -1,6 +1,6 @@
-// models/OrderProduct.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../utils/db');
+
 
 const OrderProduct = sequelize.define('OrderProduct', {
   id: {
@@ -10,19 +10,11 @@ const OrderProduct = sequelize.define('OrderProduct', {
   },
   orderId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Orders', // نام جدول Order در دیتابیس
-      key: 'id'
-    }
+    allowNull: false
   },
   productId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Products', // نام جدول Product در دیتابیس
-      key: 'id'
-    }
+    allowNull: false
   },
   quantity: {
     type: DataTypes.INTEGER,
@@ -38,11 +30,15 @@ const OrderProduct = sequelize.define('OrderProduct', {
     validate: {
       min: 0
     }
+  },
+  specialRequest: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
-  tableName: 'order_products', // نام جدول در دیتابیس
   timestamps: false,
-  underscored: true // برای نامگذاری ستون‌ها به صورت snake_case
+  tableName: 'OrderProducts'
 });
 
+sequelize.sync({alter:true})
 module.exports = OrderProduct;

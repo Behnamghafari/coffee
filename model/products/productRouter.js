@@ -214,7 +214,7 @@ router.get('/products', async (req, res) => {
 });
 
 // جزئیات محصول
-router.get('/:id', async (req, res) => {
+router.get('product/:id', async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) {
