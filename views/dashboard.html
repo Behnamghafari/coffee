@@ -423,55 +423,20 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover table-sm">
                                     <thead>
-                                        <tr>
+                                        <tr><th>ردیف</th>
                                             <th>تصویر</th>
                                             <th>نام محصول</th>
                                             <th>دسته‌بندی</th>
                                             <th>قیمت</th>
-                                            <th>موجودی</th>
+                                            <!-- <th>موجودی</th> -->
                                             <th>وضعیت</th>
                                             <th>عملیات</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><img src="https://via.placeholder.com/50" class="product-img" alt="قهوه اسپرسو"></td>
-                                            <td>قهوه اسپرسو</td>
-                                            <td>قهوه‌ها</td>
-                                            <td>45,000 تومان</td>
-                                            <td>25</td>
-                                            <td><span class="badge badge-success">فعال</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary mr-2"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="https://via.placeholder.com/50" class="product-img" alt="کاپوچینو"></td>
-                                            <td>کاپوچینو</td>
-                                            <td>قهوه‌ها</td>
-                                            <td>55,000 تومان</td>
-                                            <td>18</td>
-                                            <td><span class="badge badge-success">فعال</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary mr-2"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><img src="https://via.placeholder.com/50" class="product-img" alt="چای ماسالا"></td>
-                                            <td>چای ماسالا</td>
-                                            <td>چای‌ها</td>
-                                            <td>35,000 تومان</td>
-                                            <td>0</td>
-                                            <td><span class="badge badge-danger">ناموجود</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary mr-2"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                            </td>
-                                        </tr>
+                                    <tbody id="productsTableBody">
+                                     
                                     </tbody>
                                 </table>
                             </div>
@@ -527,6 +492,59 @@
             // Trigger resize on load
             $(window).trigger('resize');
         });
+        tableHandler()
+      async  function  tableHandler (){
+              // در حالت واقعی اینجا باید از API داده‌ها را بگیرید
+                const response = await fetch(localStorage.url + '/products',{
+                     headers: {
+                    'Authorization':`Bearer ${localStorage.getItem('token')}`,
+                    "Content-Type" : 'application/json'
+                }
+                });
+                const products = await response.json();
+                console.log(' products :' ,  products )
+                
+                renderProducts(products)
+        }
+    const  productsTableBody = document.getElementById('productsTableBody');
+      function renderProducts(products) {
+            if (products.length === 0) {
+                $('#productsTableBody').html('<tr><td colspan="8" class="text-center">محصولی یافت نشد</td></tr>');
+                return;
+            }
+            
+            let html = '';
+            products.forEach((product, index) => {
+                            console.log(' {product.img:' , ` ${product.img?localStorage.url+product.img : "#"}` )
+                            
+                productsTableBody.insertAdjacentHTML('beforeend', `
+                    <tr data-id="${product.id}">
+                        <td>${index + 1}</td>
+                        <td><img src=${product.img?localStorage.url+product.img : "#"} class="product-img" alt="${product.name}"></td>
+                        <td>${product.name}</td>
+                        <td>${product.category}</td>
+                        <td>${product.price.toLocaleString()} تومان</td>
+                        
+                        <td>
+                            <span class="status-badge ${product.isAvailable ? 'status-active' : 'status-inactive'}">
+                                ${product.isAvailable ? 'فعال' : 'غیرفعال'}
+                            </span>
+                        </td>
+                        <td class="action-btns">
+                            <button class="btn btn-outline-primary edit-btn">
+                                <i class="fas fa-edit"></i> ویرایش
+                            </button>
+                            <button class="btn btn-outline-danger delete-btn">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </td>
+                    </tr>
+                `)
+            });
+            
+            // $('#productsTableBody').html(html);
+        }
+        
     </script>
 </body>
 </html>

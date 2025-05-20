@@ -6,6 +6,7 @@
     <title>مدیریت سفارشات در انتظار</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
             --primary-color: #6f42c1;
@@ -105,29 +106,61 @@
     <!-- Socket.IO -->
     <!-- <script src="/socket.io/socket.io.js"></script> -->
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="jquery.js"></script>
     <script src="io.js"></script>
-
+    <script src="alert.js"></script>
     
     <script>
         $(document).ready(async function() {
-            // const socket = io();
-             const socket = io(localStorage.url, { 
-    transports: ['websocket', 'polling'] 
-  });
+
+ const baseUrl = window.location.origin;
+            if (!localStorage.url) {
+                localStorage.setItem('url', baseUrl);
+            }
+
+            // اتصال Socket.IO
+            const socket = io(localStorage.url,{
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                transports: ['websocket', 'polling']
+            });
+
+            // مدیریت اتصال
+            socket.on('connect', () => {
+                console.log('Connected to Socket.IO server');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from Socket.IO server');
+            });
+
+            socket.on('connect_error', (err) => {
+                console.error('Socket.IO connection error:', err);
+            });
+
             let pendingOrders = [];
-            // const request = await fetch(localStorage.url+'/guest-order?status=pending')
-            // const response = await request.json()
-            // console.log(' response :' ,  response )
-            
-            // for( i of response){pendingOrders.push(i)}
+
+            function handleNewOrder(newOrder) {
+                if (newOrder.status === 'pending') {
+                    pendingOrders.unshift(newOrder);
+                    showNewOrderAlert(newOrder);
+                    renderOrders();
+                }
+            }
+
+
             // تابع دریافت سفارشات از سرور
             async function fetchPendingOrders() {
                 try {
                     const response = await $.ajax({
                         url: localStorage.url+'/guest-order?status=pending',
                         method: 'GET',
-                        dataType: 'json'
+                        dataType: 'json',
+                        headers:{
+                            'Authorization': 'Bearer '+localStorage.token,
+                            'Content-Type': 'application/json',
+                        }
                     });
                     
                     if (response.success && Array.isArray(response.data)) {
@@ -237,12 +270,24 @@
                 return html;
             }
             
-            // رویدادهای سوکت
-            socket.on('new-pending-order', (newOrder) => {
-                showNewOrderAlert(newOrder);
-                pendingOrders.unshift(newOrder);
-                renderOrders();
+             // گوش دادن به رویدادهای صحیح
+            socket.on('new-order', (newOrder) => {
+                console.log('سفارش جدید دریافت شد:', newOrder);
+                handleNewOrder(newOrder);
             });
+
+            socket.on('new-pending-order', (newOrder) => {
+                console.log('سفارش جدید (pending) دریافت شد:', newOrder);
+                handleNewOrder(newOrder);
+            });
+
+            function handleNewOrder(newOrder) {
+                if (newOrder.status === 'pending') {
+                    pendingOrders.unshift(newOrder);
+                    showNewOrderAlert(newOrder);
+                    renderOrders();
+                }
+            }
             
             socket.on('order-status-updated', (updatedOrder) => {
                 pendingOrders = pendingOrders.filter(o => o.id !== updatedOrder.id);
@@ -271,24 +316,95 @@
                 updateOrderStatus(orderId, 'delivered');
             });
             
-            $(document).on('click', '.btn-cancel-order', function() {
-                if (confirm('آیا از لغو این سفارش مطمئن هستید؟')) {
-                    const orderId = $(this).data('order-id');
-                    updateOrderStatus(orderId, 'cancelled');
+          $(document).on('click', '.btn-cancel-order', function() {
+    const orderId = $(this).data('order-id');
+    
+    Swal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: "آیا از لغو این سفارش مطمئن هستید؟ این عمل قابل بازگشت نیست!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'بله، لغو شود!',
+        cancelButtonText: 'انصراف',
+        customClass: {
+            confirmButton: 'btn btn-danger mx-2',
+            cancelButton: 'btn btn-secondary mx-2'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // درخواست حذف به سرور
+            fetch(localStorage.url + "/orders/" + orderId, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.token,
+                    'Content-Type': 'application/json',
                 }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('خطا در لغو سفارش');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('data:', data);
+                
+                // نمایش پیام موفقیت
+                Swal.fire({
+                    title: 'لغو شد!',
+                    text: 'سفارش با موفقیت لغو شد.',
+                    icon: 'success',
+                    confirmButtonText: 'متوجه شدم'
+                });
+                location.reload()
+                // بروزرسانی وضعیت
+                updateOrderStatus(orderId, 'cancelled');
+                
+                // رفرش صفحه (در صورت نیاز)
+                // location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'خطا!',
+                    text: 'مشکلی در لغو سفارش پیش آمد: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'متوجه شدم'
+                });
             });
+        }
+    });
+});
             
             // تابع به‌روزرسانی وضعیت سفارش
             async function updateOrderStatus(orderId, status) {
+                console.log(' dtatus :' ,  status )
+                
                 try {
-                    const response = await $.ajax({
-                        url: `/guest-order/${orderId}/status`,
-                        method: 'PUT',
-                        data: { status },
-                        dataType: 'json'
-                    });
-                    
-                    if (response.success) {
+                    // const response = await $.ajax({
+                    //     url:localStorage.url + `/guest-order/${orderId}/status`,
+                    //     method: 'PUT',
+                    //     data: { status },
+                    //     dataType: 'json',
+                    //      headers:{
+                    //         'Authorization': 'Bearer '+localStorage.token,
+                    //         'Content-Type': 'application/json',
+                    //     }
+                    // });
+                    const res = await fetch(localStorage.url + `/guest-order/${orderId}/status`,{
+                          method: 'PUT',
+                          body: JSON.stringify( { status } ),
+                          dataType: 'json',
+                          headers:{
+                            'Authorization': 'Bearer '+localStorage.token,
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    const response = res.json()
+                    if (response.ok) {
                         socket.emit('update-order-status', {
                             orderId,
                             status
@@ -296,7 +412,7 @@
                     }
                 } catch (error) {
                     console.error('خطا در به‌روزرسانی سفارش:', error);
-                    alert('خطا در به‌روزرسانی سفارش');
+                    // alert('خطا در به‌روزرسانی سفارش');
                 }
             }
             

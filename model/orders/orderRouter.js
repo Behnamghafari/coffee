@@ -1,25 +1,73 @@
 const express = require('express');
+const path = require('path');
 const router = express.Router();
 const Order = require('./orderModel');
 const OrderProduct = require('../orderProduct/orderProductModel');
 const Product = require('../products/productModel');
+const authAndRole = require('../../middlewares/auth');
+// const { validateGuestOrder } = require('./orderValidations');
+router.post('/guest-order',async (req, res) => {
+    try {
+        const { tableNumber, customerNote, products } = req.body;
 
-const { validateGuestOrder } = require('./orderValidations');
+        const orderProducts = [];
+        for (const product of products) {
+            const p = await Product.findOne({
+                where: { id: product.productId },
+                raw: true
+            });
+            orderProducts.push({
+                ...p,
+                quantity: product.quantity,
+                specialRequest: product.specialRequest
+            });
+        }
 
-router.post('/guest-order', async (req, res) => {
+        const totalPrice = orderProducts.reduce((sum, item) => {
+            return sum + (item.price * item.quantity);
+        }, 0);
+
+        const order = await Order.create({
+            tableNumber,
+            totalPrice,
+            customerNote,
+            products: orderProducts,
+            status: 'pending'
+        });
+
+        // ارسال رویداد با ساختار کامل
+        req.io.emit('new-pending-order', {
+            id: order.id,
+            tableNumber: order.tableNumber,
+            status: order.status,
+            products: order.products,
+            totalPrice: order.totalPrice,
+            createdAt: order.createdAt,
+            customerNote: order.customerNote
+        });
+
+        res.json({
+            success: true,
+            message: 'سفارش با موفقیت ثبت شد',
+            orderId: order.id
+        });
+
+    } catch (error) {
+        console.error('خطا در ثبت سفارش:', error);
+        res.status(500).json({
+            success: false,
+            message: 'خطا در ثبت سفارش',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+
+router.post('/guest-order/v1', async (req, res) => {
   
   try {
     const { tableNumber, customerNote , products } = req.body;
 
-   // اعتبارسنجی
-    // const { error } = validateGuestOrder({ tableNumber, products });
-    // if (error) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: error.details[0].message
-    //   });
-    // }
-    // const products = items
     const orderProducts = []
   for(let product of products){
     const p = await Product.findOne({where:{
@@ -43,16 +91,6 @@ router.post('/guest-order', async (req, res) => {
     const order = await Order.create(data);
        console.log(' order jadid :' ,  order )
        
-    // ایجاد رکوردهای ارتباطی (اختیاری - اگر نیاز به جستجوی رابطه‌ای دارید)
-    // await Promise.all(orderProducts.map(item => {
-    //   return OrderProduct.create({
-    //     orderId: order.id,
-    //     productId: item.productId,
-    //     quantity: item.quantity,
-    //     unitPrice: item.price,
-    //     specialRequest: item.specialRequest
-    //   });
-    // }));
 
     // ارسال به همه متصل‌های Socket.IO
     req.io.emit('new-order', {
@@ -139,29 +177,135 @@ router.put('/deliver/:id', async (req, res) => {
 
 
 
-// router.get('/guest-order', async (req, res) => {
-//   console.log(' 1 :' ,  1 )
+router.get('/guest-order',authAndRole(['modir','admin','superAdmin']), async (req, res) => {
   
-//     try {
-//         const { status } = req.query;
-//         console.log(' 1 :' ,  1 )
+    try {
+        const { status } = req.query;
+           
+        const where = { status: status || 'pending' };
+        const orders = await Order.findAll({
+            where,
+            order: [['createdAt', 'DESC']]
+        });
         
-//         const where = { status: status || 'pending' };
-//         const orders = await Order.findAll({
-//             where,
-//             order: [['createdAt', 'DESC']]
-//         });
-        
-//         res.json({
-//             success: true,
-//             data: orders
-//         });
-//     } catch (error) {
-//         res.status(500).json({
-//             success: false,
-//             error: 'خطای سرور'
-//         });
-//     }
-// });
+        res.json({
+            success: true,
+            data: orders
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور'
+        });
+    }
+});
 
+
+
+// روت برای به‌روزرسانی وضعیت سفارش
+router.put('/guest-order/:id/status',authAndRole(['modir','admin','superAdmin']) ,async (req, res) => {
+
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        const order = await Order.findByPk(id);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'سفارش یافت نشد'
+            });
+        }
+        
+        await order.update({ status });
+        
+        // اطلاع به تمام کلاینت‌ها
+        req.io.emit('order-status-updated', order);
+        
+        res.json({
+            success: true,
+            message: 'وضعیت سفارش با موفقیت به‌روزرسانی شد'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور'
+        });
+    }
+});
+
+router.get('/products/list', async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      where: { isAvailable: true },
+      attributes: ['id', 'name', 'price', 'category', 'img']
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ error: 'خطای سرور' });
+  }
+});
+
+router.get('/order', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'order.html'));
+});
+
+router.delete('/orders/:id', authAndRole(['modir','admin','superAdmin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    const order = await Order.findOne({
+      where: { id }
+      // include: [/* مدل‌های وابسته اگر نیاز است */]
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'سفارش مورد نظر یافت نشد'
+      });
+    }
+
+    // فقط مدیر ارشد می‌تواند سفارش دیگران را حذف کند
+    if (userRole !== 'modir' && userRole !== 'superAdmin' && order.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'شما مجاز به حذف این سفارش نیستید'
+      });
+    }
+
+    // حذف نرم
+    await order.destroy();
+
+    // اطلاع به کلاینت‌ها
+    req.io.emit('order-deleted', { id });
+
+    // ثبت در سیستم لاگ
+    // logger.info(`Order ${id} deleted by user ${userId}`);
+
+    return res.json({
+      success: true,
+      message: 'سفارش با موفقیت حذف شد',
+      data: { id }
+    });
+
+  } catch (error) {
+    logger.error('Error deleting order:', error);
+    
+    // مدیریت خطاهای خاص
+    const errorResponse = {
+      success: false,
+      message: 'خطا در پردازش درخواست'
+    };
+
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.error = error.message;
+      errorResponse.stack = error.stack;
+    }
+
+    return res.status(500).json(errorResponse);
+  }
+});
 module.exports = router;

@@ -52,74 +52,6 @@ app.use('/uploads', express.static('uploads'));
 // Additional routes
 // روت جدید برای دریافت سفارشات pending
 
-app.get('/guest-order', async (req, res) => {
-  
-    try {
-        const { status } = req.query;
-           
-        const where = { status: status || 'pending' };
-        const orders = await Order.findAll({
-            where,
-            order: [['createdAt', 'DESC']]
-        });
-        
-        res.json({
-            success: true,
-            data: orders
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'خطای سرور'
-        });
-    }
-});
-// روت برای به‌روزرسانی وضعیت سفارش
-app.put('/guest-order/:id/status', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        const order = await Order.findByPk(id);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'سفارش یافت نشد'
-            });
-        }
-        
-        await order.update({ status });
-        
-        // اطلاع به تمام کلاینت‌ها
-        req.io.emit('order-status-updated', order);
-        
-        res.json({
-            success: true,
-            message: 'وضعیت سفارش با موفقیت به‌روزرسانی شد'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'خطای سرور'
-        });
-    }
-});
-
-app.get('/products/list', async (req, res) => {
-  try {
-    const products = await Product.findAll({
-      where: { isAvailable: true },
-      attributes: ['id', 'name', 'price', 'category', 'img']
-    });
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: 'خطای سرور' });
-  }
-});
-
-app.get('/order', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'order.html'));
-});
 
 // Socket.IO Events
 io.on('connection', (socket) => {
@@ -144,7 +76,6 @@ io.on('connection', (socket) => {
         io.emit('order-status-updated', data);
     });
 });
-
 // Error handlers
 process.on('unhandledRejection', (err) => {
   logger.error(`خطای unhandledRejection: ${err.message}`, { stack: err.stack });

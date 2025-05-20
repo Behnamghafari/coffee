@@ -331,7 +331,7 @@
                                         <th>نام محصول</th>
                                         <th>دسته‌بندی</th>
                                         <th>قیمت</th>
-                                        <th>موجودی</th>
+                                        <!-- <th>موجودی</th> -->
                                         <th>وضعیت</th>
                                         <th>عملیات</th>
                                     </tr>
@@ -471,7 +471,7 @@
             
             let html = '';
             products.forEach((product, index) => {
-                            console.log(' {product.img:' , ` ${product.img?localStorage.url+"/public"+product.img : "#"}` )
+                            console.log(' {product.img:' , ` ${product.img?localStorage.url+product.img : "#"}` )
                             
                 html += `
                     <tr data-id="${product.id}">
@@ -480,7 +480,7 @@
                         <td>${product.name}</td>
                         <td>${product.category}</td>
                         <td>${product.price.toLocaleString()} تومان</td>
-                        <td>${product.stock}</td>
+                        
                         <td>
                             <span class="status-badge ${product.isAvailable ? 'status-active' : 'status-inactive'}">
                                 ${product.isAvailable ? 'فعال' : 'غیرفعال'}
