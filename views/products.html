@@ -3,557 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لیست محصولات | کافی شاپ</title>
-    <!-- Bootstrap 4 RTL -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- SweetAlert2 -->
+    <title>مدیریت محصولات</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- Custom CSS -->
     <style>
         :root {
             --primary-color: #6f42c1;
             --secondary-color: #f8f9fa;
-            --sidebar-width: 280px;
-            --sidebar-collapsed-width: 80px;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f7fa;
-            overflow-x: hidden;
-        }
-        
-        /* Sidebar Styles - دقیقاً مانند داشبورد */
-        #sidebar {
-            width: var(--sidebar-width);
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100vh;
-            background: linear-gradient(135deg, #6f42c1 0%, #4a1d96 100%);
-            color: white;
-            transition: all 0.3s;
-            z-index: 1000;
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        #sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
-        
-        #sidebar.collapsed .sidebar-header h3,
-        #sidebar.collapsed .sidebar-text,
-        #sidebar.collapsed .dropdown-toggle::after {
-            display: none;
-        }
-        
-        #sidebar.collapsed .nav-link {
-            justify-content: center;
-        }
-        
-        .sidebar-header {
             padding: 20px;
-            background: rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
         }
         
-        .sidebar-header h3 {
-            margin-bottom: 0;
-            margin-right: 10px;
-            font-weight: 600;
-        }
-        
-        .sidebar-header .logo-icon {
-            font-size: 1.8rem;
-        }
-        
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        
-        .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            text-decoration: none;
-        }
-        
-        .nav-link.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .nav-link .icon {
-            margin-left: 10px;
-            font-size: 1.2rem;
-            min-width: 20px;
-            text-align: center;
-        }
-        
-        .sidebar-text {
-            font-weight: 500;
-        }
-        
-        /* Content Styles */
-        #content {
-            margin-right: var(--sidebar-width);
-            padding: 20px;
-            min-height: 100vh;
-            transition: all 0.3s;
-            
-        }
-        
-        #sidebar.collapsed + #content {
-            margin-right: var(--sidebar-collapsed-width);
-        }
-        
-        .navbar {
+        .products-table {
             background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .navbar .btn-toggle {
-            border: none;
-            background: transparent;
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        .user-profile {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-        
-        /* Product Table Styles */
-        .product-table {
-            background: white;
             border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            margin-bottom: 20px;
         }
         
-        .product-table .table th {
-            border-top: none;
-            color: var(--primary-color);
-        }
-        
-        .product-table .table tr {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .product-table .table tr:hover {
-            background-color: rgba(111, 66, 193, 0.05);
+        .products-table th {
+            background-color: var(--primary-color);
+            color: white;
         }
         
         .product-img {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             object-fit: cover;
             border-radius: 5px;
         }
         
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .badge-available {
+            background-color: #28a745;
+            color: white;
         }
         
-        .status-active {
-            background-color: #d4edda;
-            color: #155724;
+        .badge-unavailable {
+            background-color: #dc3545;
+            color: white;
         }
         
-        .status-inactive {
-            background-color: #f8d7da;
-            color: #721c24;
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
         }
         
-        .action-btns .btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-            margin-left: 3px;
-        }
-        
-        /* Responsive */
         @media (max-width: 768px) {
-            #sidebar {
-                width: var(--sidebar-collapsed-width);
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
             
-            #sidebar .sidebar-header h3,
-            #sidebar .sidebar-text,
-            #sidebar .dropdown-toggle::after {
-                display: none;
+            .products-table th, 
+            .products-table td {
+                white-space: nowrap;
             }
             
-            #sidebar .nav-link {
-                justify-content: center;
+            .product-img {
+                width: 40px;
+                height: 40px;
             }
-            
-            #content {
-                margin-right: var(--sidebar-collapsed-width);
-            }
-            
-            #sidebar.collapsed {
-                width: 0;
-            }
-            
-            #sidebar.collapsed + #content {
-                margin-right: 0;
-            }
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
         }
     </style>
 </head>
+<!-- <script src="menu.js"></script> -->
 <body>
-    <!-- Sidebar - دقیقاً مانند داشبورد -->
-    <nav id="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-coffee logo-icon"></i>
-            <h3 class="sidebar-text">کافی شاپ من</h3>
+    <div class="container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-coffee me-2"></i>مدیریت محصولات
+        </h1>
+        
+        <div class="table-responsive products-table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>تصویر</th>
+                        <th>نام محصول</th>
+                        <th>دسته‌بندی</th>
+                        <th>قیمت</th>
+                        <th>موجودی</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- محصولات اینجا نمایش داده می‌شوند -->
+                </tbody>
+            </table>
         </div>
-        
-        <ul class="list-unstyled components">
-            <li>
-                <a href="dashboard.html" class="nav-link">
-                    <i class="fas fa-tachometer-alt icon"></i>
-                    <span class="sidebar-text">داشبورد</span>
-                </a>
-            </li>
-            <li>
-                <a href="users.html" class="nav-link">
-                    <i class="fas fa-users icon"></i>
-                    <span class="sidebar-text">لیست کاربران</span>
-                </a>
-            </li>
-            <li>
-                <a class="nav-link dropdown-toggle active" href="#productSubmenu" data-toggle="collapse" aria-expanded="true">
-                    <i class="fas fa-coffee icon"></i>
-                    <span class="sidebar-text">محصولات</span>
-                </a>
-                <ul class="collapse list-unstyled show" id="productSubmenu">
-                    <li>
-                        <a href="products.html" class="dropdown-item active">
-                            <i class="fas fa-list icon"></i>
-                            <span class="sidebar-text">لیست محصولات</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="add-product.html" class="dropdown-item">
-                            <i class="fas fa-plus-circle icon"></i>
-                            <span class="sidebar-text">افزودن محصول</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <a href="orders.html" class="nav-link">
-                    <i class="fas fa-shopping-cart icon"></i>
-                    <span class="sidebar-text">لیست سفارشات</span>
-                </a>
-            </li>
-            <li>
-                <a href="reports.html" class="nav-link">
-                    <i class="fas fa-chart-line icon"></i>
-                    <span class="sidebar-text">آمار و گزارشات</span>
-                </a>
-            </li>
-            <li>
-                <a href="settings.html" class="nav-link">
-                    <i class="fas fa-cog icon"></i>
-                    <span class="sidebar-text">تنظیمات</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-sign-out-alt icon"></i>
-                    <span class="sidebar-text">خروج</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    
-    <!-- Content -->
-    <div id="content">
-        <!-- Top Navbar - مانند داشبورد -->
-        <nav class="navbar navbar-expand-lg navbar-light mb-4">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <div class="d-flex align-items-center">
-                    <div class="user-profile">
-                        <img src="https://via.placeholder.com/40" alt="User Profile">
-                        <span>مدیر سیستم</span>
-                    </div>
+    </div>
+
+    <!-- مودال ویرایش محصول -->
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ویرایش محصول</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-        </nav>
-        
-        <!-- Main Content -->
-        <div class="container-fluid">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h4 class="text-primary"><i class="fas fa-coffee ml-2"></i> مدیریت محصولات</h4>
-                </div>
-                <div class="col-md-6 text-left">
-                    <a href="add-product.html" class="btn btn-primary">
-                        <i class="fas fa-plus ml-2"></i> افزودن محصول جدید
-                    </a>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="product-table">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>تصویر</th>
-                                        <th>نام محصول</th>
-                                        <th>دسته‌بندی</th>
-                                        <th>قیمت</th>
-                                        <!-- <th>موجودی</th> -->
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productsTableBody">
-                                    <!-- محتوا با JavaScript پر می‌شود -->
-                                </tbody>
-                            </table>
+                <div class="modal-body">
+                    <form id="editProductForm">
+                        <input type="hidden" id="editProductId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editProductName" class="form-label">نام محصول</label>
+                                <input type="text" class="form-control" id="editProductName" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editProductCategory" class="form-label">دسته‌بندی</label>
+                                <input type="text" class="form-control" id="editProductCategory" disabled>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editProductPrice" class="form-label">قیمت (تومان)</label>
+                                <input type="number" class="form-control" id="editProductPrice" min="0" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editProductStock" class="form-label">موجودی</label>
+                                <input type="number" class="form-control" id="editProductStock" min="0" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editProductAbout" class="form-label">توضیحات محصول</label>
+                            <textarea class="form-control" id="editProductAbout" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editProductIsAvailable" class="form-label">وضعیت محصول</label>
+                            <select class="form-select" id="editProductIsAvailable">
+                                <option value="true">فعال</option>
+                                <option value="false">غیرفعال</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="saveProductChanges">ذخیره تغییرات</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery, Popper.js, Bootstrap JS -->
-    <script src="jquery.js"></script>
-    <script src="pooper.js"></script>
-    <script src="bootstrap.js"></script>
-    <!-- SweetAlert2 -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
-     <script src="alert.js"></script>
-    
-    <!-- Custom JS -->
+    <!-- اسکریپت‌ها -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="menu.js"></script>
     <script>
         $(document).ready(function() {
-            // Sidebar Toggle - مانند داشبورد
-            $('#sidebarCollapse').on('click', function() {
-                $('#sidebar').toggleClass('collapsed');
-                $('.sidebar-header h3').toggleClass('d-none');
-                $('.sidebar-text').toggleClass('d-none');
-                $('.nav-link').toggleClass('justify-content-center');
-            });
+            const editProductModal = new bootstrap.Modal('#editProductModal');
+            let products = [];
             
-            // بارگذاری محصولات
-            loadProducts();
-            
-            // کلیک روی ردیف
-            $(document).on('click', '#productsTableBody tr', function(e) {
-                if ($(e.target).closest('.action-btns').length === 0) {
-                    const productId = $(this).data('id');
-                    window.location.href = `product-details.html?id=${productId}`;
-                }
-            });
-            
-            // کلیک روی دکمه ویرایش
-            $(document).on('click', '.edit-btn', function(e) {
-                e.stopPropagation();
-                const productId = $(this).closest('tr').data('id');
-                window.location.href = `edit-product.html?id=${productId}`;
-            });
-            
-            // دابل کلیک روی دکمه حذف
-            $(document).on('dblclick', '.delete-btn', function(e) {
-                e.stopPropagation();
-                const productId = $(this).closest('tr').data('id');
-                deleteProduct(productId);
-            });
-            
-            // Responsive Sidebar - مانند داشبورد
-            $(window).resize(function() {
-                if ($(window).width() <= 768) {
-                    $('#sidebar').addClass('collapsed');
-                    $('.sidebar-header h3').addClass('d-none');
-                    $('.sidebar-text').addClass('d-none');
-                    $('.nav-link').addClass('justify-content-center');
-                } else {
-                    $('#sidebar').removeClass('collapsed');
-                    $('.sidebar-header h3').removeClass('d-none');
-                    $('.sidebar-text').removeClass('d-none');
-                    $('.nav-link').removeClass('justify-content-center');
-                }
-            });
-            
-            // Trigger resize on load
-            $(window).trigger('resize');
-        });
-        
-        // تابع بارگذاری محصولات
-        async function loadProducts() {
-            try {
-                $('#productsTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> در حال بارگذاری...</td></tr>');
-                
-                // در حالت واقعی اینجا باید از API داده‌ها را بگیرید
-                const response = await fetch(localStorage.url + '/products',{
-                     headers: {
-                    'Authorization':`Bearer ${localStorage.getItem('token')}`,
-                    "Content-Type" : 'application/json'
-                }
-                });
-                const products = await response.json();
-                
-                // داده‌های نمونه
-                const products2 = [
-                    {
-                        id: 1,
-                        name: 'قهوه اسپرسو',
-                        category: 'قهوه',
-                        price: 45000,
-                        stock: 25,
-                        isAvailable: true,
-                        imageUrl: 'https://via.placeholder.com/50'
-                    },
-                    {
-                        id: 2,
-                        name: 'کاپوچینو',
-                        category: 'قهوه',
-                        price: 55000,
-                        stock: 18,
-                        isAvailable: true,
-                        imageUrl: 'https://via.placeholder.com/50'
-                    },
-                    {
-                        id: 3,
-                        name: 'چای ماسالا',
-                        category: 'چای',
-                        price: 35000,
-                        stock: 0,
-                        isAvailable: false,
-                        imageUrl: 'https://via.placeholder.com/50'
-                    }
-                ];
-                
-                renderProducts(products);
-            } catch (error) {
-                console.error('خطا در بارگذاری محصولات:', error);
-                $('#productsTableBody').html('<tr><td colspan="8" class="text-center text-danger">خطا در بارگذاری محصولات</td></tr>');
-            }
-        }
-        
-        // تابع نمایش محصولات در جدول
-        function renderProducts(products) {
-            if (products.length === 0) {
-                $('#productsTableBody').html('<tr><td colspan="8" class="text-center">محصولی یافت نشد</td></tr>');
-                return;
-            }
-            
-            let html = '';
-            products.forEach((product, index) => {
-                            console.log(' {product.img:' , ` ${product.img?localStorage.url+product.img : "#"}` )
-                            
-                html += `
-                    <tr data-id="${product.id}">
-                        <td>${index + 1}</td>
-                        <td><img src=${product.img?localStorage.url+product.img : "#"} class="product-img" alt="${product.name}"></td>
-                        <td>${product.name}</td>
-                        <td>${product.category}</td>
-                        <td>${product.price.toLocaleString()} تومان</td>
-                        
-                        <td>
-                            <span class="status-badge ${product.isAvailable ? 'status-active' : 'status-inactive'}">
-                                ${product.isAvailable ? 'فعال' : 'غیرفعال'}
-                            </span>
-                        </td>
-                        <td class="action-btns">
-                            <button class="btn btn-outline-primary edit-btn">
-                                <i class="fas fa-edit"></i> ویرایش
-                            </button>
-                            <button class="btn btn-outline-danger delete-btn">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            $('#productsTableBody').html(html);
-        }
-        
-        // تابع حذف محصول
-        async function deleteProduct(productId) {
-            try {
-                const dl = await fetch(localStorage.url+"/deleteproduct/"+productId,{
-                    method :"DELETE",
-                     headers: {
-                    'Authorization':`Bearer ${localStorage.getItem('token')}`,
-                    "Content-Type" : 'application/json'
-                }
-                })
-                const response = await dl.json()
-                const result = await Swal.fire({
-                    title: 'آیا مطمئن هستید؟',
-                    text: 'این محصول حذف خواهد شد و این عمل برگشت‌پذیر نیست!',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'بله، حذف کن',
-                    cancelButtonText: 'لغو',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    reverseButtons: true
-                });
-                
-                if (result.isConfirmed) {
-                    // شبیه‌سازی تاخیر برای آپلود
-                    $('#productsTableBody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> در حال حذف محصول...</td></tr>');
-                    
-                    // در حالت واقعی اینجا باید درخواست DELETE به API ارسال شود
-                    // const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
-                    
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'حذف شد!',
-                        text: 'محصول با موفقیت حذف شد.',
-                        timer: 2000,
-                        showConfirmButton: false
+            // تابع بارگیری محصولات
+            async function loadProducts() {
+                try {
+                    const response = await fetch(localStorage.url + '/products', {
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token
+                        }
                     });
                     
-                    // بارگذاری مجدد لیست
-                    loadProducts();
+                    if (!response.ok) throw new Error('خطا در دریافت محصولات');
+                    
+                    const data = await response.json();
+                    products = data;
+                    renderProducts();
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در دریافت لیست محصولات پیش آمد'
+                    });
                 }
-            } catch (error) {
-                console.error('خطا در حذف محصول:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'خطا!',
-                    text: 'خطا در حذف محصول',
-                    confirmButtonText: 'متوجه شدم'
-                });
             }
-        }
+            
+            // تابع نمایش محصولات در جدول
+            function renderProducts() {
+                const tbody = $('#productsTableBody');
+                tbody.empty();
+                
+                if (products.length === 0) {
+                    tbody.append(`
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-box-open fa-2x mb-3"></i>
+                                <h5>هیچ محصولی یافت نشد</h5>
+                            </td>
+                        </tr>
+                    `);
+                    return;
+                }
+                
+                for (const [index, product] of products.entries()) {
+                    tbody.append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                ${product.img ? 
+                                  `<img src="${product.img}" class="product-img" alt="${product.name}">` : 
+                                  `<i class="fas fa-box-open fa-2x text-muted"></i>`}
+                            </td>
+                            <td>${product.name}</td>
+                            <td>${product.category}</td>
+                            <td>${product.price.toLocaleString('fa-IR')} تومان</td>
+                            <td>${product.stock}</td>
+                            <td>
+                                <span class="badge ${product.isAvailable ? 'badge-available' : 'badge-unavailable'}">
+                                    ${product.isAvailable ? 'فعال' : 'غیرفعال'}
+                                </span>
+                            </td>
+                            <td class="action-btns">
+                                <button class="btn btn-sm btn-outline-primary edit-product-btn" 
+                                        data-product-id="${product.id}">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-product-btn" 
+                                        data-product-id="${product.id}"
+                                        data-product-name="${product.name}">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                }
+            }
+            
+            // مدیریت کلیک روی دکمه ویرایش
+            $(document).on('click', '.edit-product-btn', function() {
+                const productId = $(this).data('product-id');
+                const product = products.find(p => p.id == productId);
+                
+                if (!product) return;
+                
+                // پر کردن فرم مودال
+                $('#editProductId').val(product.id);
+                $('#editProductName').val(product.name);
+                $('#editProductCategory').val(product.category);
+                $('#editProductPrice').val(product.price);
+                $('#editProductStock').val(product.stock);
+                $('#editProductAbout').val(product.aboute || '');
+                $('#editProductIsAvailable').val(product.isAvailable.toString());
+                
+                // نمایش مودال
+                editProductModal.show();
+            });
+            
+            // مدیریت کلیک روی دکمه حذف
+            $(document).on('click', '.delete-product-btn', function() {
+                const productId = $(this).data('product-id');
+                const productName = $(this).data('product-name');
+                
+                Swal.fire({
+                    title: 'آیا مطمئن هستید؟',
+                    html: `آیا از حذف محصول <b>${productName}</b> مطمئن هستید؟ این عمل قابل بازگشت نیست!`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'بله، حذف شود!',
+                    cancelButtonText: 'انصراف',
+                    customClass: {
+                        confirmButton: 'btn btn-danger mx-2',
+                        cancelButton: 'btn btn-secondary mx-2'
+                    },
+                    buttonsStyling: false
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            const response = await fetch(`${localStorage.url}/products/${productId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': 'Bearer ' + localStorage.token,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (!response.ok) throw new Error('خطا در حذف محصول');
+                            
+                            const data = await response.json();
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'حذف شد!',
+                                text: 'محصول با موفقیت حذف شد'
+                            });
+                            
+                            // بروزرسانی لیست محصولات
+                            await loadProducts();
+                            
+                        } catch (error) {
+                            console.error('خطا:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'خطا',
+                                text: 'مشکلی در حذف محصول پیش آمد'
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // ذخیره تغییرات محصول
+            $('#saveProductChanges').on('click', async function() {
+                const productId = $('#editProductId').val();
+                const productData = {
+                    price: $('#editProductPrice').val(),
+                    aboute: $('#editProductAbout').val(),
+                    isAvailable: $('#editProductIsAvailable').val() === 'true'
+                };
+                
+                // اعتبارسنجی قیمت
+                if (productData.price < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'قیمت محصول نمی‌تواند منفی باشد'
+                    });
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${localStorage.url}/products/${productId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(productData)
+                    });
+                    
+                    if (!response.ok) throw new Error('خطا در به‌روزرسانی محصول');
+                    
+                    const data = await response.json();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'موفق',
+                        text: 'تغییرات با موفقیت ذخیره شد'
+                    });
+                    
+                    // بروزرسانی لیست محصولات
+                    await loadProducts();
+                    editProductModal.hide();
+                    
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در ذخیره تغییرات پیش آمد'
+                    });
+                }
+            });
+            
+            // بارگیری اولیه محصولات
+            loadProducts();
+        });
     </script>
 </body>
 </html>

@@ -25,6 +25,82 @@ const { registerValidations } = require('../../middlewares/authUserValidations')
 const SALT_ROUNDS = 10;
 const JWT_EXPIRES_IN = '10h';
 
+// روت GET برای دریافت لیست کاربران
+router.get('/users', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
+    try {
+        const users = await User.findAll({
+            attributes: ['id', 'username', 'email', 'role', 'isActive', 'banReason', 'createdAt'],
+            order: [['createdAt', 'DESC']]
+        });
+        
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در دریافت کاربران'
+        });
+    }
+});
+
+// روت PUT برای ویرایش کاربر
+router.put('/users/:id', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role, isActive, banReason, password } = req.body;
+        const currentUser = req.user;
+        
+        // یافتن کاربر
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'کاربر یافت نشد'
+            });
+        }
+        
+        // اعتبارسنجی نقش
+        if (currentUser.role !== 'modir' && currentUser.role !== 'superAdmin') {
+            if (role && role !== user.role) {
+                return res.status(403).json({
+                    success: false,
+                    error: 'شما مجاز به تغییر نقش کاربر نیستید'
+                });
+            }
+        }
+        
+        // به‌روزرسانی فیلدها
+        if (role) user.role = role;
+        if (isActive !== undefined) user.isActive = isActive;
+        if (banReason !== undefined) user.banReason = banReason;
+        
+        // تغییر رمز عبور در صورت وجود
+        if (password && password.length >= 6) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+        }
+        
+        await user.save();
+        
+        res.json({
+            success: true,
+            message: 'تغییرات با موفقیت ذخیره شد',
+            data: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                isActive: user.isActive
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در به‌روزرسانی کاربر'
+        });
+    }
+});
+
 router.post('/register', registerValidations, async (req, res) => {
   try {
     // 1. اعتبارسنجی ورودی‌ها

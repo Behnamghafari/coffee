@@ -5,7 +5,38 @@ const Order = require('./orderModel');
 const OrderProduct = require('../orderProduct/orderProductModel');
 const Product = require('../products/productModel');
 const authAndRole = require('../../middlewares/auth');
+const {Op}= require('sequelize');
 // const { validateGuestOrder } = require('./orderValidations');
+
+
+
+
+// روت GET برای دریافت سفارشات تحویل داده شده با صفحه‌بندی
+router.get('/orders/delivered', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
+    try {
+        const { page = 1, limit = 15 } = req.query;
+        const offset = (page - 1) * limit;
+        
+        
+        const orders = await Order.findAll({
+            where: { 
+                status: 'delivered',
+                // deliveredAt: { [Op.not]: null }
+            },
+            order: [['deliveredAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        });
+        // console.log(' orders :' ,  orders )
+        
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در دریافت سفارشات'
+        });
+    }
+});
 router.post('/guest-order',async (req, res) => {
     try {
         const { tableNumber, customerNote, products } = req.body;
@@ -201,6 +232,36 @@ router.get('/guest-order',authAndRole(['modir','admin','superAdmin']), async (re
 });
 
 
+// همه سفارشات امروز
+router.get('/all-guest-order', authAndRole(['modir','admin','superAdmin']), async (req, res) => {
+    try {
+        // تاریخ امروز به صورت YYYY-MM-DD
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const where = {
+            createdAt: {
+                [Op.gte]: today // تاریخ بزرگتر یا مساوی امروز
+            }
+        };
+
+        const orders = await Order.findAll({
+            where,
+            order: [['createdAt', 'DESC']]
+        });
+        
+        res.json({
+            success: true,
+            data: orders
+        });
+    } catch (error) {
+        console.error('Error fetching today orders:', error);
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در دریافت سفارشات امروز'+ error
+        });
+    }
+});
 
 // روت برای به‌روزرسانی وضعیت سفارش
 router.put('/guest-order/:id/status',authAndRole(['modir','admin','superAdmin']) ,async (req, res) => {

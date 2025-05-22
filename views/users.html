@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت کاربران</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .user-table {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .user-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .badge-admin {
+            background-color: #6f42c1;
+            color: white;
+        }
+        
+        .badge-user {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .badge-active {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-banned {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-users me-2"></i>مدیریت کاربران
+        </h1>
+        
+        <div class="table-responsive user-table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نام کاربری</th>
+                        <th>ایمیل</th>
+                        <th>نقش</th>
+                        <th>وضعیت</th>
+                        <th>تاریخ ثبت‌نام</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- کاربران اینجا نمایش داده می‌شوند -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- مودال ویرایش کاربر -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ویرایش کاربر</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editUsername" class="form-label">نام کاربری</label>
+                                <input type="text" class="form-control" id="editUsername" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editEmail" class="form-label">ایمیل</label>
+                                <input type="email" class="form-control" id="editEmail" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editRole" class="form-label">نقش</label>
+                                <select class="form-select" id="editRole">
+                                    <option value="modir">مدیر اصلی</option>
+                                    <option value="superAdmin">سوپر ادمین</option>
+                                    <option value="admin">ادمین</option>
+                                    <option value="user">کاربر عادی</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editIsActive" class="form-label">وضعیت حساب</label>
+                                <select class="form-select" id="editIsActive">
+                                    <option value="true">فعال</option>
+                                    <option value="false">غیرفعال</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editBanReason" class="form-label">دلیل مسدودسازی (اختیاری)</label>
+                            <textarea class="form-control" id="editBanReason" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">
+                                رمز عبور جدید 
+                                <small class="text-muted">(در صورت تمایل به تغییر)</small>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="editPassword">
+                                <span class="input-group-text password-toggle">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                            <div class="form-text">حداقل ۶ کاراکتر</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="saveUserChanges">ذخیره تغییرات</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- اسکریپت‌ها -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        $(document).ready(function() {
+            const editUserModal = new bootstrap.Modal('#editUserModal');
+            let users = [];
+            
+            // تابع بارگیری کاربران
+            async function loadUsers() {
+                try {
+                    const response = await fetch(localStorage.url + '/users', {
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('خطا در دریافت کاربران');
+                    
+                    const data = await response.json();
+                    users = data;
+                    renderUsers();
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در دریافت لیست کاربران پیش آمد'
+                    });
+                }
+            }
+            
+            // تابع نمایش کاربران در جدول
+            function renderUsers() {
+                const tbody = $('#usersTableBody');
+                tbody.empty();
+                
+                if (users.length === 0) {
+                    tbody.append(`
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-users-slash fa-2x mb-3"></i>
+                                <h5>هیچ کاربری یافت نشد</h5>
+                            </td>
+                        </tr>
+                    `);
+                    return;
+                }
+                
+                for (const [index, user] of users.entries()) {
+                    const registerDate = new Date(user.createdAt).toLocaleDateString('fa-IR');
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${user.username}</td>
+                            <td>${user.email || '-'}</td>
+                            <td>
+                                <span class="badge ${getRoleBadgeClass(user.role)}">
+                                    ${getRoleText(user.role)}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge ${user.isActive ? 'badge-active' : 'badge-banned'}">
+                                    ${user.isActive ? 'فعال' : 'مسدود'}
+                                </span>
+                            </td>
+                            <td>${registerDate}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                        data-user-id="${user.id}">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                }
+            }
+            
+            // توابع کمکی
+            function getRoleBadgeClass(role) {
+                return role === 'user' ? 'badge-user' : 'badge-admin';
+            }
+            
+            function getRoleText(role) {
+                const roles = {
+                    'modir': 'مدیر اصلی',
+                    'superAdmin': 'سوپر ادمین',
+                    'admin': 'ادمین',
+                    'user': 'کاربر عادی'
+                };
+                return roles[role] || role;
+            }
+            
+            // مدیریت کلیک روی دکمه ویرایش
+            $(document).on('click', '.edit-user-btn', function() {
+                const userId = $(this).data('user-id');
+                const user = users.find(u => u.id == userId);
+                
+                if (!user) return;
+                
+                // پر کردن فرم مودال
+                $('#editUserId').val(user.id);
+                $('#editUsername').val(user.username);
+                $('#editEmail').val(user.email || '');
+                $('#editRole').val(user.role);
+                $('#editIsActive').val(user.isActive.toString());
+                $('#editBanReason').val(user.banReason || '');
+                $('#editPassword').val('');
+                
+                // نمایش مودال
+                editUserModal.show();
+            });
+            
+            // نمایش/مخفی کردن رمز عبور
+            $(document).on('click', '.password-toggle', function() {
+                const input = $('#editPassword');
+                const icon = $(this).find('i');
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            // ذخیره تغییرات کاربر
+            $('#saveUserChanges').on('click', async function() {
+                const userId = $('#editUserId').val();
+                const userData = {
+                    role: $('#editRole').val(),
+                    isActive: $('#editIsActive').val() === 'true',
+                    banReason: $('#editBanReason').val(),
+                    password: $('#editPassword').val() || undefined
+                };
+                
+                try {
+                    const response = await fetch(`${localStorage.url}/users/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                    
+                    if (!response.ok) throw new Error('خطا در به‌روزرسانی کاربر');
+                    
+                    const data = await response.json();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'موفق',
+                        text: 'تغییرات با موفقیت ذخیره شد'
+                    });
+                    
+                    // بروزرسانی لیست کاربران
+                    await loadUsers();
+                    editUserModal.hide();
+                    
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در ذخیره تغییرات پیش آمد'
+                    });
+                }
+            });
+            
+            // بارگیری اولیه کاربران
+            loadUsers();
+        });
+    </script>
+</body>
+</html>

@@ -27,6 +27,117 @@ const upload = multer({
   }
 });
 
+
+
+
+// روت GET برای دریافت لیست محصولات
+router.get('/products', authAndRole(['modir', 'superAdmin', 'admin', 'user']), async (req, res) => {
+    try {
+        const products = await Product.findAll({
+            order: [['createdAt', 'DESC']]
+        });
+        
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در دریافت محصولات'
+        });
+    }
+});
+
+// روت PUT برای ویرایش محصول
+router.put('/products/:id', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { price, aboute, isAvailable } = req.body;
+        
+        // یافتن محصول
+        const product = await Product.findByPk(id);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: 'محصول یافت نشد'
+            });
+        }
+        
+        // به‌روزرسانی فیلدها
+        if (price !== undefined) product.price = price;
+        if (aboute !== undefined) product.aboute = aboute;
+        if (isAvailable !== undefined) product.isAvailable = isAvailable;
+        
+        await product.save();
+        
+        res.json({
+            success: true,
+            message: 'تغییرات با موفقیت ذخیره شد',
+            data: {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                isAvailable: product.isAvailable
+            }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در به‌روزرسانی محصول'
+        });
+    }
+});
+
+// روت DELETE برای حذف محصول
+router.delete('/products/:id', authAndRole(['modir', 'superAdmin']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const product = await Product.findByPk(id);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                error: 'محصول یافت نشد'
+            });
+        }
+        
+        // بررسی وجود سفارشات فعال برای این محصول
+        const hasActiveOrders = await OrderProduct.findOne({
+            where: { productId: id },
+            include: [{
+                model: Order,
+                where: { 
+                    status: { 
+                        [Op.notIn]: ['delivered', 'cancelled'] 
+                    } 
+                }
+            }]
+        });
+        
+        if (hasActiveOrders) {
+            return res.status(400).json({
+                success: false,
+                error: 'این محصول در سفارشات فعال وجود دارد و نمی‌تواند حذف شود'
+            });
+        }
+        
+        // حذف نرم (soft delete)
+        await product.destroy();
+        
+        res.json({
+            success: true,
+            message: 'محصول با موفقیت حذف شد',
+            data: { id }
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در حذف محصول'
+        });
+    }
+});
+
+
 router.post('/upload', 
   upload.single('image'),
   async (req, res) => {
