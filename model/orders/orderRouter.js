@@ -217,117 +217,128 @@ router.put('/guest-order/:id/status',authAndRole(['modir','admin','superAdmin'])
 // به‌روزرسانی سفارش
 router.put('/orders/:orderId', authAndRole(['modir', 'admin', 'superAdmin']), async (req, res) => {
     try {
-        const { orderId } = req.params;
-        const { tableNumber, products, customerNote, totalPrice } = req.body;
-
-        // اعتبارسنجی ورودی‌ها
-        if (!tableNumber || !products || !Array.isArray(products) || products.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'ورودی‌ها نامعتبر هستند'
-            });
+      const { orderId } = req.params;
+      const { tableNumber, products, customerNote, totalPrice } = req.body;
+      console.log(' products aval :' ,  products )
+      
+      // اعتبارسنجی ورودی‌ها
+      // if (!tableNumber || !products || !Array.isArray(products) || products.length === 0) {
+      //     return res.status(400).json({
+      //         success: false,
+      //         error: 'ورودی‌ها نامعتبر هستند'
+      //       });
+      //     }
+      
+      // یافتن سفارش
+      const order = await Order.findByPk(orderId);
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          error: 'سفارش یافت نشد'
+        });
+      }
+      
+      // بررسی وضعیت سفارش (فقط سفارش‌های pending قابل ویرایش هستند)
+      if (order.status !== 'pending') {
+        return res.status(400).json({
+          success: false,
+          error: 'فقط سفارش‌های در حال انتظار قابل ویرایش هستند'
+        });
+      }
+      
+      // آماده کردن محصولات برای ذخیره
+      const orderProducts = [];
+      let calculatedTotal = 0;
+      console.log(' products :' ,  products )
+      
+      // بررسی موجودیت و اعتبار محصولات
+      for (const item of products) {
+        
+        const product = await Product.findByPk(item.id,{raw:true});
+        console.log(' product :' ,  product )
+        
+        if (!product) {
+          return res.status(400).json({
+            success: false,
+            error: `محصول با شناسه ${item.productId} یافت نشد`
+          });
         }
-
-        // یافتن سفارش
-        const order = await Order.findByPk(orderId);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'سفارش یافت نشد'
-            });
-        }
-
-        // بررسی وضعیت سفارش (فقط سفارش‌های pending قابل ویرایش هستند)
-        if (order.status !== 'pending') {
-            return res.status(400).json({
-                success: false,
-                error: 'فقط سفارش‌های در حال انتظار قابل ویرایش هستند'
-            });
-        }
-
-        // آماده کردن محصولات برای ذخیره
-        const orderProducts = [];
-        let calculatedTotal = 0;
-
-        // بررسی موجودیت و اعتبار محصولات
-        for (const item of products) {
-          
-            const product = await Product.findByPk(item.productId);
-            
-            if (!product) {
+        
+        if (!product.isAvailable) {
+          return res.status(400).json({
+            success: false,
+            error: `محصول ${product.name} در حال حاضر موجود نیست`
+          });
+              }
+              
+              const quantity = parseInt(item.quantity) || 1;
+              if (quantity < 1) {
                 return res.status(400).json({
-                    success: false,
-                    error: `محصول با شناسه ${item.productId} یافت نشد`
+                  success: false,
+                  error: `تعداد محصول ${product.name} نامعتبر است`
                 });
-            }
-
-            if (!product.isAvailable) {
-                return res.status(400).json({
-                    success: false,
-                    error: `محصول ${product.name} در حال حاضر موجود نیست`
-                });
-            }
-
-            const quantity = parseInt(item.quantity) || 1;
-            if (quantity < 1) {
-                return res.status(400).json({
-                    success: false,
-                    error: `تعداد محصول ${product.name} نامعتبر است`
-                });
-            }
-
-            orderProducts.push({
+              }
+              
+              orderProducts.push({
                 id: product.id,
                 name: product.name,
                 price: product.price,
                 quantity: quantity,
                 img: product.img || '',
                 specialRequest: item.specialRequest || ''
-            });
-
-            calculatedTotal += product.price * quantity;
-        }
-
-        // بررسی تطابق قیمت کل
-        if (totalPrice && Math.abs(calculatedTotal - totalPrice) > 100) { // اختلاف کوچک قابل قبول است
-            return res.status(400).json({
+              });
+              
+              calculatedTotal += product.price * quantity;
+            }
+            
+            
+            
+            // بررسی تطابق قیمت کل
+            if (totalPrice && Math.abs(calculatedTotal - totalPrice) > 100) { // اختلاف کوچک قابل قبول است
+              return res.status(400).json({
                 success: false,
                 error: 'محاسبه قیمت کل نادرست است'
+              });
+            }
+            
+            // به‌روزرسانی سفارش
+            await order.update({
+              tableNumber,
+              products: orderProducts,
+              totalPrice: calculatedTotal,
+              customerNote: customerNote || null
             });
-        }
-
-        // به‌روزرسانی سفارش
-        await order.update({
-            tableNumber,
-            products: orderProducts,
-            totalPrice: calculatedTotal,
-            customerNote: customerNote || null
-        });
-        // await order.update(req.body)
-        await  order.save()
-        // ارسال رویداد به کلاینت‌ها
-        req.io.emit('order-updated', {
-            orderId: order.id,
-            tableNumber: order.tableNumber,
-            status: order.status,
-            products: order.products,
-            totalPrice: order.totalPrice,
-            updatedAt: order.updatedAt
-        });
-
-        res.json({
-            success: true,
-            message: 'سفارش با موفقیت به‌روزرسانی شد',
-            data: {
+            // await order.update(req.body)
+            await  order.save()
+            console.log(' order test :' ,  order.toJSON() )
+            
+            // ارسال رویداد به کلاینت‌ها
+            req.io.emit('order-updated', {
+              id: order.id,
+              tableNumber: order.tableNumber,
+              status: order.status,
+              products: order.products,
+              totalPrice: order.totalPrice,
+              updatedAt: order.updatedAt
+            });
+            const data = {
                 id: order.id,
                 tableNumber: order.tableNumber,
                 status: order.status,
                 totalPrice: order.totalPrice,
                 updatedAt: order.updatedAt
             }
+    
+        res.json({
+            success: true,
+            message: 'سفارش با موفقیت به‌روزرسانی شد',
+          data
         });
+console.log(' data :' ,  data )
 
     } catch (error) {
+      console.log(' error :' ,  error )
+      
         console.error('خطا در به‌روزرسانی سفارش:', error);
         res.status(500).json({
             success: false,

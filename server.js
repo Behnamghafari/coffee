@@ -17,6 +17,7 @@ app.use(helmet());
 app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({extended:true}))
 app.use(express.static(path.join(__dirname, "public")));
 
 // Socket.IO Configuration
@@ -78,12 +79,12 @@ io.on('connection', (socket) => {
 });
 // Error handlers
 process.on('unhandledRejection', (err) => {
-  logger.error(`خطای unhandledRejection: ${err.message}`, { stack: err.stack });
+  console.log(`خطای unhandledRejection: ${err.message}`, { stack: err.stack });
   server.close(() => process.exit(1));
 });
 
 process.on('uncaughtException', (err) => {
-  logger.error(`خطای uncaughtException: ${err.message}`, { stack: err.stack });
+  console.log(`خطای uncaughtException: ${err.message}`, { stack: err.stack });
   server.close(() => process.exit(1));
 });
 

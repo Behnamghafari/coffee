@@ -28,7 +28,7 @@ const Order = sequelize.define('Order', {
     defaultValue: 'pending'
   },
   totalPrice: {
-    type: DataTypes.DECIMAL(10, 2),
+    type: DataTypes.DECIMAL(15, 2),
     allowNull: false,
     validate: {
       min: 0

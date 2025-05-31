@@ -223,9 +223,14 @@
     <!-- Socket.IO -->
     <!-- <script src="/socket.io/socket.io.js"></script> -->
     <!-- jQuery -->
-    <script src="jquery.js"></script>
+    <!-- <script src="jquery.js"></script>
 <script src="pooper.js"></script>
-    <script src="bootstrap.js"></script>
+    <script src="bootstrap.js"></script> -->
+     <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+      <script src="jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="io.js"></script>
     <!-- <script src="menu.js"></script> -->
     <script src="alert.js"></script>
@@ -362,8 +367,10 @@
                 let html = '';
                 
                 for (const order of pendingOrders) {
+                    console.log(' order orderId :' ,  order )
+                    
                     html += `
-                        <div class="order-card mb-4" data-order-id="${order.id}">
+                        <div class="order-card mb-4" data-order-id="${order.id ?? order.orderId}">
                             <div class="order-header">
                                 <div>
                                     <h5 class="mb-0">سفارش #${order.id}</h5>
@@ -535,7 +542,7 @@
                     icon: 'success',
                     confirmButtonText: 'متوجه شدم'
                 });
-                location.reload()
+                // location.reload()
                 // بروزرسانی وضعیت
                 updateOrderStatus(orderId, 'cancelled');
                 
@@ -699,15 +706,21 @@ $(document).on('click', '#modalSearchResults .search-item', function() {
     $('#modalProductName').val(productName).attr('data-id', productId);
     $('#modalProductPrice').val(productPrice.toLocaleString());
     $('#modalProductQuantity').val(1).focus();
+    modalProductQuantity.value = ""
     updateModalTotal();
     $('#modalSearchResults').hide();
 });
 
+modalProductQuantity.addEventListener("keyup",(e)=>{
+    if(e.key == "Enter"){
+        modalAddToOrder.click()
+    }
+})
 // محاسبه قیمت کل در مودال
 function updateModalTotal() {
     const quantity = parseInt($('#modalProductQuantity').val()) || 1;
     const price = parseFloat($('#modalProductPrice').val().replace(/,/g, '')) || 0;
-    const total = quantity * price;
+    const total = +quantity * +price;
     
     $('#modalProductTotal').val(total.toLocaleString());
 }
@@ -728,11 +741,12 @@ $('#modalAddToOrder').on('click', function() {
     }
     
     const price = parseFloat(priceText.replace(/,/g, ''));
-    const total = price * quantity;
+    const total = +price * +quantity; 
     
     // پیدا کردن تصویر محصول
     const product = products.find(p => p.id == productId);
     const productImg = product?.img || '';
+    console.log(' product :' ,  product )
     
     // بررسی آیا محصول قبلاً اضافه شده است
     const existingRow = $(`#modalOrderItems tr[data-id="${productId}"]`);
@@ -810,7 +824,8 @@ $('#modalSaveChanges').on('click', async function() {
         const img = $(this).find('img').attr('src') || '';
         
         products.push({
-            productId,
+            id : productId,
+            // productId,
             name: productName,
             price,
             quantity,
@@ -818,7 +833,7 @@ $('#modalSaveChanges').on('click', async function() {
             specialRequest: ''
         });
         
-        totalPrice += price * quantity;
+        totalPrice += +price * +quantity;
     });
     
     const customerNote = $('#modalCustomerNote').val();
@@ -852,13 +867,44 @@ $('#modalSaveChanges').on('click', async function() {
         bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
         fetchPendingOrders();
         
+
+
+
+        // گوش دادن به رویداد order-updated
+// گوش دادن به رویداد order-updated
+socket.on('order-updated', (updatedOrder) => {
+    console.log('سفارش ویرایش شده دریافت شد:', updatedOrder);
+    
+    // پیدا کردن سفارش در لیست pendingOrders
+    const index = pendingOrders.findIndex(o => o.id === updatedOrder.id);
+    
+    if (index !== -1) {
+        // به‌روزرسانی سفارش در لیست محلی
+        pendingOrders[index] = updatedOrder;
+        
+        // رندر مجدد لیست سفارشات
+        renderOrders();
+        
+        // نمایش نوتیفیکیشن
+        Swal.fire({
+            title: 'سفارش به‌روزرسانی شد',
+            text: `سفارش میز ${updatedOrder.tableNumber} ویرایش شد`,
+            icon: 'info',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    }
+});
+
+
+
         Swal.fire({
             title: 'موفقیت!',
             text: 'سفارش با موفقیت به‌روزرسانی شد',
             icon: 'success',
             confirmButtonText: 'باشه'
         });
-        location.reload()
+        // location.reload()
     } catch (error) {
         console.error('خطا در به‌روزرسانی سفارش:', error);
         Swal.fire({
