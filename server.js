@@ -9,13 +9,9 @@ const Product = require('./model/products/productModel');
 const Order = require('./model/orders/orderModel');
 const app = express();
 const server = http.createServer(app);
+const {clearLogger} = require('./utils/clearLogger')
 
-console.clear()
 
-app.use("/",(req,res,next)=>{
-  console.clear();
-  next()
-})
 // Middlewares
 app.use(helmet());
 app.disable('x-powered-by');
@@ -31,12 +27,16 @@ const io = socketIo(server, {
     credentials: true
   }
 });
+console.clear()
+console.log((new Date()).toLocaleString('fa'))
+app.use(clearLogger)
 
 // Attach io to requests
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
+
 
 // Routes
 const productRouter = require('./model/products/productRouter');

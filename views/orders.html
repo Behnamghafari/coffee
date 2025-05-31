@@ -82,6 +82,42 @@
             z-index: 1000;
             animation: slideIn 0.5s ease-out;
         }
+        /* استایل‌های مودال */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    border-top: none;
+    background-color: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+
+/* اسکرول داخلی مودال */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* دکمه‌های عملیات */
+.modal-remove-item {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
         
         @keyframes slideIn {
             from { transform: translateX(100%); }
@@ -101,12 +137,95 @@
                 <h4>هیچ سفارشی در انتظار نیست</h4>
             </div>
         </div>
+
+
+
+
+
+        <!-- مودال ویرایش سفارش -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش سفارش #<span id="editOrderId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <!-- محتوای مشابه guest-order.html -->
+                <div class="search-container mb-3">
+                    <input type="text" id="modalProductSearch" class="form-control" placeholder="نام محصول را جستجو کنید...">
+                    <div id="modalSearchResults" class="search-results"></div>
+                </div>
+                
+                <div class="row g-3 align-items-end mb-3">
+                    <div class="col-md-5">
+                        <label for="modalProductName" class="form-label">محصول انتخاب شده</label>
+                        <input type="text" id="modalProductName" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductQuantity" class="form-label">تعداد</label>
+                        <input type="number" id="modalProductQuantity" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductPrice" class="form-label">قیمت واحد</label>
+                        <input type="text" id="modalProductPrice" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductTotal" class="form-label">قیمت کل</label>
+                        <input type="text" id="modalProductTotal" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-1">
+                        <button id="modalAddToOrder" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>تصویر</th>
+                                <th>نام محصول</th>
+                                <th>تعداد</th>
+                                <th>قیمت واحد</th>
+                                <th>قیمت کل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrderItems">
+                            <!-- سفارشات اینجا نمایش داده می‌شوند -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="4" class="text-end">جمع کل:</td>
+                                <td id="modalGrandTotal">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="modalCustomerNote" class="form-label">توضیحات سفارش</label>
+                    <textarea id="modalCustomerNote" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" id="modalSaveChanges" class="btn btn-primary">ذخیره تغییرات</button>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- Socket.IO -->
     <!-- <script src="/socket.io/socket.io.js"></script> -->
     <!-- jQuery -->
     <script src="jquery.js"></script>
+<script src="pooper.js"></script>
+    <script src="bootstrap.js"></script>
     <script src="io.js"></script>
     <!-- <script src="menu.js"></script> -->
     <script src="alert.js"></script>
@@ -139,6 +258,58 @@
             socket.on('connect_error', (err) => {
                 console.error('Socket.IO connection error:', err);
             });
+
+
+
+
+
+
+
+              let products = [];
+            
+            // لیست سفارشات
+            let orderItems = [];
+            
+      function loadProducts() {
+   
+    const cachedProducts = localStorage.getItem('cafeProducts')
+    $.ajax({
+        url: localStorage.url + '/products/list',
+        method: 'GET',
+        success: function(data) {
+            if (data && Array.isArray(data)) {
+                products = data.map(p => ({
+                    ...p,
+                    // مطمئن شویم isAvailable وجود دارد
+                    isAvailable: p.isAvailable !== false
+                }));
+                localStorage.setItem('cafeProducts', JSON.stringify(products));
+                console.log('محصولات از سرور دریافت و ذخیره شدند:', products);
+            } else {
+                console.error('داده دریافتی نامعتبر است:', data);
+            }
+        },
+        error: function(error) {
+            console.error('خطا در دریافت محصولات:', error);
+            // استفاده از داده‌های پیش‌فرض در صورت خطا
+            products = [];
+        }
+    });
+}
+            
+            // بارگیری اولیه محصولات
+            loadProducts();
+
+
+
+
+
+
+
+
+
+
+
 
             let pendingOrders = [];
 
@@ -232,6 +403,10 @@
                                     <button class="btn btn-success btn-mark-delivered" 
                                             data-order-id="${order.id}">
                                         <i class="fas fa-check"></i> تحویل شد
+                                    </button>
+                                      <button class="btn btn-primary btn-edit-order" 
+                                            data-order-id="${order.id}">
+                                        <i class="fas fa-edit"></i> ویرایش
                                     </button>
                                     <button class="btn btn-danger btn-cancel-order" 
                                             data-order-id="${order.id}">
@@ -419,6 +594,281 @@
             
             // بارگیری اولیه سفارشات
             fetchPendingOrders();
+
+
+
+
+            // مدیریت دکمه ویرایش سفارش
+$(document).on('click', '.btn-edit-order', function() {
+    const orderId = $(this).data('order-id');
+    const order = pendingOrders.find(o => o.id == orderId);
+    
+    if (order) {
+        openEditModal(order);
+    }
+});
+
+// تابع باز کردن مودال ویرایش
+function openEditModal(order) {
+    // پر کردن اطلاعات اولیه
+    $('#editOrderId').text(order.id);
+    $('#modalCustomerNote').val(order.customerNote || '');
+    
+    // پر کردن جدول محصولات
+    $('#modalOrderItems').empty();
+    let grandTotal = 0;
+    
+    order.products.forEach((product, index) => {
+        const total = product.price * product.quantity;
+        grandTotal += total;
+        
+        $('#modalOrderItems').append(`
+            <tr data-id="${product.id}">
+                <td>
+                    ${product.img ? `<img src="${product.img}" class="product-img" alt="${product.name}">` : ''}
+                </td>
+                <td>${product.name}</td>
+                <td>${product.quantity}</td>
+                <td>${product.price.toLocaleString()}</td>
+                <td>${total.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm modal-remove-item" data-id="${product.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+    
+    $('#modalGrandTotal').text(grandTotal.toLocaleString());
+    
+    // ذخیره اطلاعات سفارش فعلی
+    $('#editOrderModal').data('current-order', order);
+    
+    // نمایش مودال
+    const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
+    modal.show();
+}
+
+// مدیریت جستجوی محصول در مودال
+$('#modalProductSearch').on('input', function() {
+    const searchTerm = $(this).val().trim().toLowerCase();
+    const resultsContainer = $('#modalSearchResults');
+    
+    if (searchTerm.length < 2) {
+        resultsContainer.hide();
+        return;
+    }
+
+    // فیلتر کردن محصولات
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) 
+    );
+    
+    // نمایش نتایج
+    if (filteredProducts.length > 0) {
+        let html = '';
+        filteredProducts.forEach(product => {
+            html += `
+                <div class="search-item" data-id="${product.id}" 
+                     data-name="${product.name}" 
+                     data-price="${product.price}">
+                    <div class="d-flex align-items-center">
+                        ${product.img ? `<img src="${product.img}" class="product-img me-2" alt="${product.name}">` : ''}
+                        <div>
+                            <h6 class="mb-0">${product.name}</h6>
+                            <small class="text-muted">${product.price.toLocaleString()} تومان - ${product.category}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsContainer.html(html).show();
+    } else {
+        resultsContainer.html('<div class="search-item text-muted p-3">محصولی یافت نشد</div>').show();
+    }
+});
+
+// انتخاب محصول از نتایج جستجو در مودال
+$(document).on('click', '#modalSearchResults .search-item', function() {
+    const productId = $(this).data('id');
+    const productName = $(this).data('name');
+    const productPrice = $(this).data('price');
+    
+    $('#modalProductName').val(productName).attr('data-id', productId);
+    $('#modalProductPrice').val(productPrice.toLocaleString());
+    $('#modalProductQuantity').val(1).focus();
+    updateModalTotal();
+    $('#modalSearchResults').hide();
+});
+
+// محاسبه قیمت کل در مودال
+function updateModalTotal() {
+    const quantity = parseInt($('#modalProductQuantity').val()) || 1;
+    const price = parseFloat($('#modalProductPrice').val().replace(/,/g, '')) || 0;
+    const total = quantity * price;
+    
+    $('#modalProductTotal').val(total.toLocaleString());
+}
+
+// تغییر تعداد در مودال
+$('#modalProductQuantity').on('input', updateModalTotal);
+
+// اضافه کردن محصول به سفارش در مودال
+$('#modalAddToOrder').on('click', function() {
+    const productId = $('#modalProductName').attr('data-id');
+    const productName = $('#modalProductName').val();
+    const priceText = $('#modalProductPrice').val();
+    const quantity = parseInt($('#modalProductQuantity').val()) || 1;
+    
+    if (!productId || !productName || !priceText) {
+        alert('لطفاً ابتدا یک محصول انتخاب کنید');
+        return;
+    }
+    
+    const price = parseFloat(priceText.replace(/,/g, ''));
+    const total = price * quantity;
+    
+    // پیدا کردن تصویر محصول
+    const product = products.find(p => p.id == productId);
+    const productImg = product?.img || '';
+    
+    // بررسی آیا محصول قبلاً اضافه شده است
+    const existingRow = $(`#modalOrderItems tr[data-id="${productId}"]`);
+    
+    if (existingRow.length > 0) {
+        // اگر محصول وجود دارد، تعداد را افزایش می‌دهیم
+        const currentQty = parseInt(existingRow.find('td:nth-child(3)').text());
+        const newQty = currentQty + quantity;
+        existingRow.find('td:nth-child(3)').text(newQty);
+        existingRow.find('td:nth-child(5)').text((price * newQty).toLocaleString());
+    } else {
+        // اگر محصول جدید است، ردیف جدید اضافه می‌کنیم
+        $('#modalOrderItems').append(`
+            <tr data-id="${product.id}">
+                <td>
+                    ${productImg ? `<img src="${productImg}" class="product-img" alt="${productName}">` : ''}
+                </td>
+                <td>${productName}</td>
+                <td>${quantity}</td>
+                <td>${price.toLocaleString()}</td>
+                <td>${total.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm modal-remove-item" data-id="${product.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    }
+    
+    // محاسبه مجدد جمع کل
+    updateModalGrandTotal();
+    
+    // ریست کردن فرم
+    $('#modalProductSearch').val('');
+    $('#modalProductName').val('').removeAttr('data-id');
+    $('#modalProductPrice').val('');
+    $('#modalProductQuantity').val(1);
+    $('#modalProductTotal').val('');
+});
+
+// حذف محصول از سفارش در مودال
+$(document).on('click', '.modal-remove-item', function() {
+    $(this).closest('tr').remove();
+    updateModalGrandTotal();
+});
+
+// محاسبه جمع کل در مودال
+function updateModalGrandTotal() {
+    let grandTotal = 0;
+    
+    $('#modalOrderItems tr').each(function() {
+        const price = parseFloat($(this).find('td:nth-child(4)').text().replace(/,/g, ''));
+        const quantity = parseInt($(this).find('td:nth-child(3)').text());
+        grandTotal += price * quantity;
+    });
+    
+    $('#modalGrandTotal').text(grandTotal.toLocaleString());
+}
+
+// ذخیره تغییرات سفارش
+$('#modalSaveChanges').on('click', async function() {
+    const order = $('#editOrderModal').data('current-order');
+    const orderId = order.id;
+    
+    // جمع‌آوری محصولات جدید
+    const products = [];
+    let totalPrice = 0;
+    
+    $('#modalOrderItems tr').each(function() {
+        const productId = $(this).data('id');
+        const productName = $(this).find('td:nth-child(2)').text();
+        const quantity = parseInt($(this).find('td:nth-child(3)').text());
+        const price = parseFloat($(this).find('td:nth-child(4)').text().replace(/,/g, ''));
+        const img = $(this).find('img').attr('src') || '';
+        
+        products.push({
+            productId,
+            name: productName,
+            price,
+            quantity,
+            img,
+            specialRequest: ''
+        });
+        
+        totalPrice += price * quantity;
+    });
+    
+    const customerNote = $('#modalCustomerNote').val();
+    
+    // آماده کردن داده‌های سفارش
+    const orderData = {
+        tableNumber: order.tableNumber,
+        products,
+        customerNote,
+        totalPrice
+    };
+    
+    try {
+        // ارسال درخواست به سرور
+        const response = await fetch(`${localStorage.url}/orders/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        if (!response.ok) {
+            console.log(' response :' ,  response )
+            
+            throw new Error('خطا در به‌روزرسانی سفارش');
+        }
+        
+        // بستن مودال و رفرش لیست سفارشات
+        bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+        fetchPendingOrders();
+        
+        Swal.fire({
+            title: 'موفقیت!',
+            text: 'سفارش با موفقیت به‌روزرسانی شد',
+            icon: 'success',
+            confirmButtonText: 'باشه'
+        });
+        location.reload()
+    } catch (error) {
+        console.error('خطا در به‌روزرسانی سفارش:', error);
+        Swal.fire({
+            title: 'خطا!',
+            text: 'مشکلی در به‌روزرسانی سفارش پیش آمد',
+            icon: 'error',
+            confirmButtonText: 'متوجه شدم'
+        });
+    }
+});
         });
     </script>
 </body>

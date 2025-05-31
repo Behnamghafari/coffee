@@ -193,19 +193,7 @@
             
       function loadProducts() {
    
-    const cachedProducts = localStorage.getItem('cafeProducts');
-    // if (cachedProducts) {
-    //     try {
-    //         products = JSON.parse(cachedProducts);
-    //         console.log('محصولات از حافظه مرورگر بارگیری شدند:', products);
-    //         return;
-    //     } catch (e) {
-    //         console.error('خطا در خواندن محصولات از حافظه:', e);
-    //         localStorage.removeItem('cafeProducts');
-    //     }
-    // }
-    
-    // دریافت محصولات از سرور
+    const cachedProducts = localStorage.getItem('cafeProducts')
     $.ajax({
         url: localStorage.url + '/products/list',
         method: 'GET',

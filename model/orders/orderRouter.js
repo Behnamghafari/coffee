@@ -5,38 +5,13 @@ const Order = require('./orderModel');
 const OrderProduct = require('../orderProduct/orderProductModel');
 const Product = require('../products/productModel');
 const authAndRole = require('../../middlewares/auth');
-const {Op}= require('sequelize');
+const {Op, where}= require('sequelize');
 // const { validateGuestOrder } = require('./orderValidations');
 
 
 
 
-// روت GET برای دریافت سفارشات تحویل داده شده با صفحه‌بندی
-router.get('/orders/delivered', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
-    try {
-        const { page = 1, limit = 15 } = req.query;
-        const offset = (page - 1) * limit;
-        
-        
-        const orders = await Order.findAll({
-            where: { 
-                status: 'delivered',
-                // deliveredAt: { [Op.not]: null }
-            },
-            order: [['deliveredAt', 'DESC']],
-            limit: parseInt(limit),
-            offset: parseInt(offset)
-        });
-        // console.log(' orders :' ,  orders )
-        
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'خطای سرور در دریافت سفارشات'
-        });
-    }
-});
+
 router.post('/guest-order',async (req, res) => {
     try {
         const { tableNumber, customerNote, products } = req.body;
@@ -205,8 +180,192 @@ router.put('/deliver/:id', async (req, res) => {
   }
 });
 
+router.put('/guest-order/:id/status',authAndRole(['modir','admin','superAdmin']) ,async (req, res) => {
+
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        const order = await Order.findByPk(id);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'سفارش یافت نشد'
+            });
+        }
+        
+        await order.update({ status });
+        
+        // اطلاع به تمام کلاینت‌ها
+        req.io.emit('order-status-updated', order);
+        
+        res.json({
+            success: true,
+            message: 'وضعیت سفارش با موفقیت به‌روزرسانی شد'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور'
+        });
+    }
+});
+
+// routes/orderRoutes.js
 
 
+// به‌روزرسانی سفارش
+router.put('/orders/:orderId', authAndRole(['modir', 'admin', 'superAdmin']), async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { tableNumber, products, customerNote, totalPrice } = req.body;
+
+        // اعتبارسنجی ورودی‌ها
+        if (!tableNumber || !products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'ورودی‌ها نامعتبر هستند'
+            });
+        }
+
+        // یافتن سفارش
+        const order = await Order.findByPk(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                error: 'سفارش یافت نشد'
+            });
+        }
+
+        // بررسی وضعیت سفارش (فقط سفارش‌های pending قابل ویرایش هستند)
+        if (order.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                error: 'فقط سفارش‌های در حال انتظار قابل ویرایش هستند'
+            });
+        }
+
+        // آماده کردن محصولات برای ذخیره
+        const orderProducts = [];
+        let calculatedTotal = 0;
+
+        // بررسی موجودیت و اعتبار محصولات
+        for (const item of products) {
+          
+            const product = await Product.findByPk(item.productId);
+            
+            if (!product) {
+                return res.status(400).json({
+                    success: false,
+                    error: `محصول با شناسه ${item.productId} یافت نشد`
+                });
+            }
+
+            if (!product.isAvailable) {
+                return res.status(400).json({
+                    success: false,
+                    error: `محصول ${product.name} در حال حاضر موجود نیست`
+                });
+            }
+
+            const quantity = parseInt(item.quantity) || 1;
+            if (quantity < 1) {
+                return res.status(400).json({
+                    success: false,
+                    error: `تعداد محصول ${product.name} نامعتبر است`
+                });
+            }
+
+            orderProducts.push({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: quantity,
+                img: product.img || '',
+                specialRequest: item.specialRequest || ''
+            });
+
+            calculatedTotal += product.price * quantity;
+        }
+
+        // بررسی تطابق قیمت کل
+        if (totalPrice && Math.abs(calculatedTotal - totalPrice) > 100) { // اختلاف کوچک قابل قبول است
+            return res.status(400).json({
+                success: false,
+                error: 'محاسبه قیمت کل نادرست است'
+            });
+        }
+
+        // به‌روزرسانی سفارش
+        await order.update({
+            tableNumber,
+            products: orderProducts,
+            totalPrice: calculatedTotal,
+            customerNote: customerNote || null
+        });
+        // await order.update(req.body)
+        await  order.save()
+        // ارسال رویداد به کلاینت‌ها
+        req.io.emit('order-updated', {
+            orderId: order.id,
+            tableNumber: order.tableNumber,
+            status: order.status,
+            products: order.products,
+            totalPrice: order.totalPrice,
+            updatedAt: order.updatedAt
+        });
+
+        res.json({
+            success: true,
+            message: 'سفارش با موفقیت به‌روزرسانی شد',
+            data: {
+                id: order.id,
+                tableNumber: order.tableNumber,
+                status: order.status,
+                totalPrice: order.totalPrice,
+                updatedAt: order.updatedAt
+            }
+        });
+
+    } catch (error) {
+        console.error('خطا در به‌روزرسانی سفارش:', error);
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در به‌روزرسانی سفارش',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+module.exports = router;
+
+
+// روت GET برای دریافت سفارشات تحویل داده شده با صفحه‌بندی
+router.get('/orders/delivered', authAndRole(['modir', 'superAdmin', 'admin']), async (req, res) => {
+    try {
+        const { page = 1, limit = 15 } = req.query;
+        const offset = (page - 1) * limit;
+        
+        
+        const orders = await Order.findAll({
+            where: { 
+                status: 'delivered',
+                // deliveredAt: { [Op.not]: null }
+            },
+            order: [['deliveredAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        });
+        // console.log(' orders :' ,  orders )
+        
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'خطای سرور در دریافت سفارشات'
+        });
+    }
+});
 
 router.get('/guest-order',authAndRole(['modir','admin','superAdmin']), async (req, res) => {
   
@@ -264,36 +423,7 @@ router.get('/all-guest-order', authAndRole(['modir','admin','superAdmin']), asyn
 });
 
 // روت برای به‌روزرسانی وضعیت سفارش
-router.put('/guest-order/:id/status',authAndRole(['modir','admin','superAdmin']) ,async (req, res) => {
 
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        
-        const order = await Order.findByPk(id);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                error: 'سفارش یافت نشد'
-            });
-        }
-        
-        await order.update({ status });
-        
-        // اطلاع به تمام کلاینت‌ها
-        req.io.emit('order-status-updated', order);
-        
-        res.json({
-            success: true,
-            message: 'وضعیت سفارش با موفقیت به‌روزرسانی شد'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: 'خطای سرور'
-        });
-    }
-});
 
 router.get('/products/list', async (req, res) => {
   try {
@@ -369,4 +499,6 @@ router.delete('/orders/:id', authAndRole(['modir','admin','superAdmin']), async 
     return res.status(500).json(errorResponse);
   }
 });
+
+
 module.exports = router;
