@@ -13,6 +13,30 @@
             --secondary-color: #f8f9fa;
         }
         
+    /* استایل‌های مخصوص پرینت */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .order-card, .order-card * {
+            visibility: visible;
+        }
+        .order-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+        }
+        .action-buttons {
+            display: none !important;
+        }
+    }
+
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f7fa;
@@ -418,6 +442,12 @@
                                     <button class="btn btn-danger btn-cancel-order" 
                                             data-order-id="${order.id}">
                                         <i class="fas fa-times"></i> لغو سفارش
+                                    </button>
+                                    <button class="btn btn-info  btn-print-order" 
+                                     data-order-id="${order.id}">
+                                            
+                                   <i class="fas fa-print"></i> پرینت
+                                        
                                     </button>
                                 </div>
                             </div>
@@ -915,7 +945,58 @@ socket.on('order-updated', (updatedOrder) => {
         });
     }
 });
+
+
+function printOrder(orderId) {
+    // ذخیره محتوای اصلی صفحه
+    const originalContents = document.body.innerHTML;
+    
+    // پیدا کردن کارت سفارش
+    const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+    
+    if (!orderCard) {
+        console.error('سفارش مورد نظر یافت نشد');
+        return;
+    }
+    
+    // جایگزینی محتوای صفحه با سفارش مورد نظر
+    document.body.innerHTML = `
+        <div style="font-family: Tahoma, Arial; direction: rtl; padding: 20px;">
+            ${orderCard.outerHTML}
+        </div>
+        <button onclick="window.location.reload()" style="
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #6f42c1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        ">بازگشت</button>
+    `;
+    
+    // اجرای پرینت
+    setTimeout(() => {
+        window.print();
+        // بازگرداندن محتوای اصلی صفحه
+        document.body.innerHTML = originalContents;
+    }, 200);
+}
+
+// مدیریت کلیک دکمه پرینت
+$(document).on('click', '.btn-print-order', function() {
+const  btn = [...document.getElementsByClassName('btn')];
+btn.forEach(x=>x.classList.add('d-print-none'))
+    const orderId = $(this).data('order-id');
+    printOrder(orderId);
+});
+
         });
+
+        
+
     </script>
 </body>
 </html>
