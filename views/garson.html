@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منوی تب با Bootstrap 4</title>
+    <!-- Bootstrap 4 CSS RTL -->
+    <link rel="stylesheet" href="bootstrap.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css"> -->
+    <style>
+        body {
+            padding: 20px;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-floid">
+    <h2 class="mb-4 text-center"> ADAK COFFEE</h2>
+    
+    <!-- تب ها -->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true"> لیست سفارشات</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false"> ثبت سفارش جدید</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">تب سوم</a>
+        </li>
+    </ul>
+    
+    <!-- محتوای تب ها -->
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <h4>  لیست سفارشات</h4>
+            <!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت سفارشات در انتظار</title>
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #f8f9fa;
+        }
+        
+    /* استایل‌های مخصوص پرینت */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .order-card, .order-card * {
+            visibility: visible;
+        }
+        .order-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+        }
+        .action-buttons {
+            display: none !important;
+        }
+    }
+
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .order-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .order-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-body {
+            padding: 20px;
+        }
+        
+        .order-table {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .order-table th {
+            background-color: #f8f9fa;
+            text-align: right;
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .badge-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .new-order-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+        }
+        /* استایل‌های مودال */
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    border-top: none;
+    background-color: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+
+/* اسکرول داخلی مودال */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* دکمه‌های عملیات */
+.modal-remove-item {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-clock me-2"></i>سفارشات در انتظار
+        </h1>
+        
+        <div id="ordersContainer">
+            <div class="empty-orders">
+                <i class="fas fa-coffee fa-3x mb-3"></i>
+                <h4>هیچ سفارشی در انتظار نیست</h4>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- مودال ویرایش سفارش -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش سفارش #<span id="editOrderId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <!-- محتوای مشابه guest-order.html -->
+                <div class="search-container mb-3">
+                    <input type="text" id="modalProductSearch" class="form-control" placeholder="نام محصول را جستجو کنید...">
+                    <div id="modalSearchResults" class="search-results"></div>
+                </div>
+                
+                <div class="row g-3 align-items-end mb-3">
+                    <div class="col-md-5">
+                        <label for="modalProductName" class="form-label">محصول انتخاب شده</label>
+                        <input type="text" id="modalProductName" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductQuantity" class="form-label">تعداد</label>
+                        <input type="number" id="modalProductQuantity" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductPrice" class="form-label">قیمت واحد</label>
+                        <input type="text" id="modalProductPrice" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modalProductTotal" class="form-label">قیمت کل</label>
+                        <input type="text" id="modalProductTotal" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-1">
+                        <button id="modalAddToOrder" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>تصویر</th>
+                                <th>نام محصول</th>
+                                <th>تعداد</th>
+                                <th>قیمت واحد</th>
+                                <th>قیمت کل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrderItems">
+                            <!-- سفارشات اینجا نمایش داده می‌شوند -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="4" class="text-end">جمع کل:</td>
+                                <td id="modalGrandTotal">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="modalCustomerNote" class="form-label">توضیحات سفارش</label>
+                    <textarea id="modalCustomerNote" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" id="modalSaveChanges" class="btn btn-primary">ذخیره تغییرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <!-- Socket.IO -->
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <!-- jQuery -->
+    <!-- <script src="jquery.js"></script>
+<script src="pooper.js"></script>
+    <script src="bootstrap.js"></script> -->
+     <!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+      <script src="jquery.js"></script>
+    <script src="bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="io.js"></script>
+    <!-- <script src="menu.js"></script> -->
+    <script src="alert.js"></script>
+    
+    <script>
+        $(document).ready(async function() {
+
+ const baseUrl = window.location.origin;
+            if (!localStorage.url) {
+                localStorage.setItem('url', baseUrl);
+            }
+
+            // اتصال Socket.IO
+            const socket = io(localStorage.url,{
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                transports: ['websocket', 'polling']
+            });
+
+            // مدیریت اتصال
+            socket.on('connect', () => {
+                console.log('Connected to Socket.IO server');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from Socket.IO server');
+            });
+
+            socket.on('connect_error', (err) => {
+                console.error('Socket.IO connection error:', err);
+            });
+
+
+
+
+
+
+
+              let products = [];
+            
+            // لیست سفارشات
+            let orderItems = [];
+            
+      function loadProducts() {
+   
+    const cachedProducts = localStorage.getItem('cafeProducts')
+    $.ajax({
+        url: localStorage.url + '/products/list',
+        method: 'GET',
+        success: function(data) {
+            if (data && Array.isArray(data)) {
+                products = data.map(p => ({
+                    ...p,
+                    // مطمئن شویم isAvailable وجود دارد
+                    isAvailable: p.isAvailable !== false
+                }));
+                localStorage.setItem('cafeProducts', JSON.stringify(products));
+                console.log('محصولات از سرور دریافت و ذخیره شدند:', products);
+            } else {
+                console.error('داده دریافتی نامعتبر است:', data);
+            }
+        },
+        error: function(error) {
+            console.error('خطا در دریافت محصولات:', error);
+            // استفاده از داده‌های پیش‌فرض در صورت خطا
+            products = [];
+        }
+    });
+}
+            
+            // بارگیری اولیه محصولات
+            loadProducts();
+
+
+
+
+
+
+
+
+
+
+
+
+            let pendingOrders = [];
+
+            function handleNewOrder(newOrder) {
+                if (newOrder.status === 'pending') {
+                    pendingOrders.unshift(newOrder);
+                    showNewOrderAlert(newOrder);
+                    renderOrders();
+                }
+            }
+
+
+            // تابع دریافت سفارشات از سرور
+            async function fetchPendingOrders() {
+                try {
+                    const response = await $.ajax({
+                        url: localStorage.url+'/guest-order?status=pending',
+                        method: 'GET',
+                        dataType: 'json',
+                        headers:{
+                            'Authorization': 'Bearer '+localStorage.token,
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (response.success && Array.isArray(response.data)) {
+                        pendingOrders = response.data;
+                        renderOrders();
+                    }
+                } catch (error) {
+                    console.error('خطا در دریافت سفارشات:', error);
+                }
+            }
+
+            
+            // تابع نمایش سفارشات
+            function renderOrders() {
+                const container = $('#ordersContainer');
+                
+                if (pendingOrders.length === 0) {
+                    container.html(`
+                        <div class="empty-orders">
+                            <i class="fas fa-coffee fa-3x mb-3"></i>
+                            <h4>هیچ سفارشی در انتظار نیست</h4>
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let html = '';
+                
+                for (const order of pendingOrders) {
+                    console.log(' order orderId :' ,  order )
+                    
+                    html += `
+                        <div class="order-card mb-4" data-order-id="${order.id ?? order.orderId}">
+                            <div class="order-header">
+                                <div>
+                                    <h5 class="mb-0">سفارش #${order.id}</h5>
+                                    <small>میز شماره: ${order.tableNumber}</small>
+                                </div>
+                                <span class="badge badge-pending">در انتظار</span>
+                            </div>
+                            <div class="order-body">
+                                <table class="order-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="background-color:gray">محصول</th>
+                                            <th style="background-color:gray">تعداد</th>
+                                            <th style="background-color:gray">قیمت واحد</th>
+                                            <th style="background-color:gray">قیمت کل</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${renderOrderItems(order.products)}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-end">جمع کل:</td>
+                                            <td>${order.totalPrice.toLocaleString('fa-IR')} تومان</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                
+                                ${order.customerNote ? `
+                                    <div class="mb-3">
+                                        <strong>توضیحات:</strong>
+                                        <p class="text-muted">${order.customerNote}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="action-buttons">
+                                    <button class="btn btn-success btn-mark-delivered" 
+                                            data-order-id="${order.id}">
+                                        <i class="fas fa-check"></i> تحویل شد
+                                    </button>
+                                      <button class="btn btn-primary btn-edit-order" 
+                                            data-order-id="${order.id}">
+                                        <i class="fas fa-edit"></i> ویرایش
+                                    </button>
+                                    <button class="btn btn-danger btn-cancel-order" 
+                                            data-order-id="${order.id}">
+                                        <i class="fas fa-times"></i> لغو سفارش
+                                    </button>
+                                    <button class="btn btn-info  btn-print-order" 
+                                     data-order-id="${order.id}">
+                                            
+                                   <i class="fas fa-print"></i> پرینت
+                                        
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                container.html(html);
+            }
+            
+            // تابع نمایش آیتم‌های سفارش
+            function renderOrderItems(items) {
+                let html = '';
+                
+                for (const item of items) {
+                    html += `
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    ${item.img ? 
+                                      `<img src="${item.img}" class="product-img me-2" alt="${item.name}">` : 
+                                      `<i class="fas fa-coffee product-img me-2"></i>`}
+                                    <span>${item.name}</span>
+                                </div>
+                            </td>
+                            <td>${item.quantity}</td>
+                            <td>${item.price.toLocaleString('fa-IR')} تومان</td>
+                            <td>${(item.price * item.quantity).toLocaleString('fa-IR')} تومان</td>
+                        </tr>
+                    `;
+                }
+                
+                return html;
+            }
+            
+             // گوش دادن به رویدادهای صحیح
+            socket.on('new-order', (newOrder) => {
+                console.log('سفارش جدید دریافت شد:', newOrder);
+                handleNewOrder(newOrder);
+            });
+
+            socket.on('new-pending-order', (newOrder) => {
+                console.log('سفارش جدید (pending) دریافت شد:', newOrder);
+                handleNewOrder(newOrder);
+            });
+
+            function handleNewOrder(newOrder) {
+                if (newOrder.status === 'pending') {
+                    pendingOrders.unshift(newOrder);
+                    showNewOrderAlert(newOrder);
+                    renderOrders();
+                }
+            }
+            
+            socket.on('order-status-updated', (updatedOrder) => {
+                pendingOrders = pendingOrders.filter(o => o.id !== updatedOrder.id);
+                renderOrders();
+            });
+            
+            // نمایش اعلان سفارش جدید
+            function showNewOrderAlert(order) {
+                const alert = $(`
+                    <div class="alert alert-success new-order-alert" role="alert">
+                        <i class="fas fa-bell me-2"></i>
+                        سفارش جدید از میز ${order.tableNumber} (${order.products.length} آیتم)
+                    </div>
+                `);
+                
+                $('body').append(alert);
+                
+                setTimeout(() => {
+                    alert.fadeOut(500, () => alert.remove());
+                }, 3000);
+            }
+            
+            // مدیریت دکمه‌های عملیات
+            $(document).on('click', '.btn-mark-delivered', function() {
+                const orderId = $(this).data('order-id');
+                updateOrderStatus(orderId, 'delivered');
+            });
+            
+          $(document).on('click', '.btn-cancel-order', function() {
+    const orderId = $(this).data('order-id');
+    
+    Swal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: "آیا از لغو این سفارش مطمئن هستید؟ این عمل قابل بازگشت نیست!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'بله، لغو شود!',
+        cancelButtonText: 'انصراف',
+        customClass: {
+            confirmButton: 'btn btn-danger mx-2',
+            cancelButton: 'btn btn-secondary mx-2'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // درخواست حذف به سرور
+            fetch(localStorage.url + "/orders/" + orderId, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.token,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('خطا در لغو سفارش');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('data:', data);
+                
+                // نمایش پیام موفقیت
+                Swal.fire({
+                    title: 'لغو شد!',
+                    text: 'سفارش با موفقیت لغو شد.',
+                    icon: 'success',
+                    confirmButtonText: 'متوجه شدم'
+                });
+                // location.reload()
+                // بروزرسانی وضعیت
+                updateOrderStatus(orderId, 'cancelled');
+                
+                // رفرش صفحه (در صورت نیاز)
+                // location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'خطا!',
+                    text: 'مشکلی در لغو سفارش پیش آمد: ' + error.message,
+                    icon: 'error',
+                    confirmButtonText: 'متوجه شدم'
+                });
+            });
+        }
+    });
+});
+            
+            // تابع به‌روزرسانی وضعیت سفارش
+            async function updateOrderStatus(orderId, status) {
+                console.log(' dtatus :' ,  status )
+                
+                try {
+                    // const response = await $.ajax({
+                    //     url:localStorage.url + `/guest-order/${orderId}/status`,
+                    //     method: 'PUT',
+                    //     data: { status },
+                    //     dataType: 'json',
+                    //      headers:{
+                    //         'Authorization': 'Bearer '+localStorage.token,
+                    //         'Content-Type': 'application/json',
+                    //     }
+                    // });
+                    const res = await fetch(localStorage.url + `/guest-order/${orderId}/status`,{
+                          method: 'PUT',
+                          body: JSON.stringify( { status } ),
+                          dataType: 'json',
+                          headers:{
+                            'Authorization': 'Bearer '+localStorage.token,
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    const response = res.json()
+                    if (response.ok) {
+                        socket.emit('update-order-status', {
+                            orderId,
+                            status
+                        });
+                    }
+                } catch (error) {
+                    console.error('خطا در به‌روزرسانی سفارش:', error);
+                    // alert('خطا در به‌روزرسانی سفارش');
+                }
+            }
+            
+            // بارگیری اولیه سفارشات
+            fetchPendingOrders();
+
+
+
+
+            // مدیریت دکمه ویرایش سفارش
+$(document).on('click', '.btn-edit-order', function() {
+    const orderId = $(this).data('order-id');
+    const order = pendingOrders.find(o => o.id == orderId);
+    
+    if (order) {
+        openEditModal(order);
+    }
+});
+
+// تابع باز کردن مودال ویرایش
+function openEditModal(order) {
+    // پر کردن اطلاعات اولیه
+    $('#editOrderId').text(order.id);
+    $('#modalCustomerNote').val(order.customerNote || '');
+    
+    // پر کردن جدول محصولات
+    $('#modalOrderItems').empty();
+    let grandTotal = 0;
+    
+    order.products.forEach((product, index) => {
+        const total = product.price * product.quantity;
+        grandTotal += total;
+        
+        $('#modalOrderItems').append(`
+            <tr data-id="${product.id}">
+                <td>
+                    ${product.img ? `<img src="${product.img}" class="product-img" alt="${product.name}">` : ''}
+                </td>
+                <td>${product.name}</td>
+                <td>${product.quantity}</td>
+                <td>${product.price.toLocaleString()}</td>
+                <td>${total.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm modal-remove-item" data-id="${product.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+    
+    $('#modalGrandTotal').text(grandTotal.toLocaleString());
+    
+    // ذخیره اطلاعات سفارش فعلی
+    $('#editOrderModal').data('current-order', order);
+    
+    // نمایش مودال
+    const modal = new bootstrap.Modal(document.getElementById('editOrderModal'));
+    modal.show();
+}
+
+// مدیریت جستجوی محصول در مودال
+$('#modalProductSearch').on('input', function() {
+    const searchTerm = $(this).val().trim().toLowerCase();
+    const resultsContainer = $('#modalSearchResults');
+    
+    if (searchTerm.length < 2) {
+        resultsContainer.hide();
+        return;
+    }
+
+    // فیلتر کردن محصولات
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) 
+    );
+    
+    // نمایش نتایج
+    if (filteredProducts.length > 0) {
+        let html = '';
+        filteredProducts.forEach(product => {
+            html += `
+                <div class="search-item" data-id="${product.id}" 
+                     data-name="${product.name}" 
+                     data-price="${product.price}">
+                    <div class="d-flex align-items-center">
+                        ${product.img ? `<img src="${product.img}" class="product-img me-2" alt="${product.name}">` : ''}
+                        <div>
+                            <h6 class="mb-0">${product.name}</h6>
+                            <small class="text-muted">${product.price.toLocaleString()} تومان - ${product.category}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsContainer.html(html).show();
+    } else {
+        resultsContainer.html('<div class="search-item text-muted p-3">محصولی یافت نشد</div>').show();
+    }
+});
+
+// انتخاب محصول از نتایج جستجو در مودال
+$(document).on('click', '#modalSearchResults .search-item', function() {
+    const productId = $(this).data('id');
+    const productName = $(this).data('name');
+    const productPrice = $(this).data('price');
+    
+    $('#modalProductName').val(productName).attr('data-id', productId);
+    $('#modalProductPrice').val(productPrice.toLocaleString());
+    $('#modalProductQuantity').val(1).focus();
+    modalProductQuantity.value = ""
+    updateModalTotal();
+    $('#modalSearchResults').hide();
+});
+
+modalProductQuantity.addEventListener("keyup",(e)=>{
+    if(e.key == "Enter"){
+        modalAddToOrder.click()
+    }
+})
+// محاسبه قیمت کل در مودال
+function updateModalTotal() {
+    const quantity = parseInt($('#modalProductQuantity').val()) || 1;
+    const price = parseFloat($('#modalProductPrice').val().replace(/,/g, '')) || 0;
+    const total = +quantity * +price;
+    
+    $('#modalProductTotal').val(total.toLocaleString());
+}
+
+// تغییر تعداد در مودال
+$('#modalProductQuantity').on('input', updateModalTotal);
+
+// اضافه کردن محصول به سفارش در مودال
+$('#modalAddToOrder').on('click', function() {
+    const productId = $('#modalProductName').attr('data-id');
+    const productName = $('#modalProductName').val();
+    const priceText = $('#modalProductPrice').val();
+    const quantity = parseInt($('#modalProductQuantity').val()) || 1;
+    
+    if (!productId || !productName || !priceText) {
+        alert('لطفاً ابتدا یک محصول انتخاب کنید');
+        return;
+    }
+    
+    const price = parseFloat(priceText.replace(/,/g, ''));
+    const total = +price * +quantity; 
+    
+    // پیدا کردن تصویر محصول
+    const product = products.find(p => p.id == productId);
+    const productImg = product?.img || '';
+    console.log(' product :' ,  product )
+    
+    // بررسی آیا محصول قبلاً اضافه شده است
+    const existingRow = $(`#modalOrderItems tr[data-id="${productId}"]`);
+    
+    if (existingRow.length > 0) {
+        // اگر محصول وجود دارد، تعداد را افزایش می‌دهیم
+        const currentQty = parseInt(existingRow.find('td:nth-child(3)').text());
+        const newQty = currentQty + quantity;
+        existingRow.find('td:nth-child(3)').text(newQty);
+        existingRow.find('td:nth-child(5)').text((price * newQty).toLocaleString());
+    } else {
+        // اگر محصول جدید است، ردیف جدید اضافه می‌کنیم
+        $('#modalOrderItems').append(`
+            <tr data-id="${product.id}">
+                <td>
+                    ${productImg ? `<img src="${productImg}" class="product-img" alt="${productName}">` : ''}
+                </td>
+                <td>${productName}</td>
+                <td>${quantity}</td>
+                <td>${price.toLocaleString()}</td>
+                <td>${total.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm modal-remove-item" data-id="${product.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    }
+    
+    // محاسبه مجدد جمع کل
+    updateModalGrandTotal();
+    
+    // ریست کردن فرم
+    $('#modalProductSearch').val('');
+    $('#modalProductName').val('').removeAttr('data-id');
+    $('#modalProductPrice').val('');
+    $('#modalProductQuantity').val(1);
+    $('#modalProductTotal').val('');
+});
+
+// حذف محصول از سفارش در مودال
+$(document).on('click', '.modal-remove-item', function() {
+    $(this).closest('tr').remove();
+    updateModalGrandTotal();
+});
+
+// محاسبه جمع کل در مودال
+function updateModalGrandTotal() {
+    let grandTotal = 0;
+    
+    $('#modalOrderItems tr').each(function() {
+        const price = parseFloat($(this).find('td:nth-child(4)').text().replace(/,/g, ''));
+        const quantity = parseInt($(this).find('td:nth-child(3)').text());
+        grandTotal += price * quantity;
+    });
+    
+    $('#modalGrandTotal').text(grandTotal.toLocaleString());
+}
+
+// ذخیره تغییرات سفارش
+$('#modalSaveChanges').on('click', async function() {
+    const order = $('#editOrderModal').data('current-order');
+    const orderId = order.id;
+    
+    // جمع‌آوری محصولات جدید
+    const products = [];
+    let totalPrice = 0;
+    
+    $('#modalOrderItems tr').each(function() {
+        const productId = $(this).data('id');
+        const productName = $(this).find('td:nth-child(2)').text();
+        const quantity = parseInt($(this).find('td:nth-child(3)').text());
+        const price = parseFloat($(this).find('td:nth-child(4)').text().replace(/,/g, ''));
+        const img = $(this).find('img').attr('src') || '';
+        
+        products.push({
+            id : productId,
+            // productId,
+            name: productName,
+            price,
+            quantity,
+            img,
+            specialRequest: ''
+        });
+        
+        totalPrice += +price * +quantity;
+    });
+    
+    const customerNote = $('#modalCustomerNote').val();
+    
+    // آماده کردن داده‌های سفارش
+    const orderData = {
+        tableNumber: order.tableNumber,
+        products,
+        customerNote,
+        totalPrice
+    };
+    
+    try {
+        // ارسال درخواست به سرور
+        const response = await fetch(`${localStorage.url}/orders/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        if (!response.ok) {
+            console.log(' response :' ,  response )
+            
+            throw new Error('خطا در به‌روزرسانی سفارش');
+        }
+        
+        // بستن مودال و رفرش لیست سفارشات
+        bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+        fetchPendingOrders();
+        
+
+
+
+        // گوش دادن به رویداد order-updated
+// گوش دادن به رویداد order-updated
+socket.on('order-updated', (updatedOrder) => {
+    console.log('سفارش ویرایش شده دریافت شد:', updatedOrder);
+    
+    // پیدا کردن سفارش در لیست pendingOrders
+    const index = pendingOrders.findIndex(o => o.id === updatedOrder.id);
+    
+    if (index !== -1) {
+        // به‌روزرسانی سفارش در لیست محلی
+        pendingOrders[index] = updatedOrder;
+        
+        // رندر مجدد لیست سفارشات
+        renderOrders();
+        
+        // نمایش نوتیفیکیشن
+        Swal.fire({
+            title: 'سفارش به‌روزرسانی شد',
+            text: `سفارش میز ${updatedOrder.tableNumber} ویرایش شد`,
+            icon: 'info',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    }
+});
+
+
+
+        Swal.fire({
+            title: 'موفقیت!',
+            text: 'سفارش با موفقیت به‌روزرسانی شد',
+            icon: 'success',
+            confirmButtonText: 'باشه'
+        });
+        // location.reload()
+    } catch (error) {
+        console.error('خطا در به‌روزرسانی سفارش:', error);
+        Swal.fire({
+            title: 'خطا!',
+            text: 'مشکلی در به‌روزرسانی سفارش پیش آمد',
+            icon: 'error',
+            confirmButtonText: 'متوجه شدم'
+        });
+    }
+});
+
+
+function printOrder(orderId) {
+    // ذخیره محتوای اصلی صفحه
+    const originalContents = document.body.innerHTML;
+    
+    // پیدا کردن کارت سفارش
+    const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+    
+    if (!orderCard) {
+        console.error('سفارش مورد نظر یافت نشد');
+        return;
+    }
+    
+    // جایگزینی محتوای صفحه با سفارش مورد نظر
+    document.body.innerHTML = `
+        <div style="font-family: Tahoma, Arial; direction: rtl; padding: 20px;">
+            ${orderCard.outerHTML}
+        </div>
+        <button onclick="window.location.reload()" style="
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #6f42c1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        ">بازگشت</button>
+    `;
+    
+    // اجرای پرینت
+    setTimeout(() => {
+        window.print();
+        // بازگرداندن محتوای اصلی صفحه
+        document.body.innerHTML = originalContents;
+    }, 200);
+}
+
+// مدیریت کلیک دکمه پرینت
+$(document).on('click', '.btn-print-order', function() {
+const  btn = [...document.getElementsByClassName('btn')];
+btn.forEach(x=>x.classList.add('d-print-none'))
+    const orderId = $(this).data('order-id');
+    printOrder(orderId);
+});
+
+        });
+
+        
+
+    </script>
+</body>
+</html>
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <h4>ثبت سفارش جدید</h4>
+            <!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سفارش محصول | کافی شاپ</title>
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6f42c1;
+            --secondary-color: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .search-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .search-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-form {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+        
+        .order-table {
+            margin-top: 30px;
+        }
+        
+        .order-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        
+        .submit-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4"><i class="fas fa-coffee me-2"></i>سفارش محصولات کافی شاپ</h1>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="order-form">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label for="productSearch" class="form-label">جستجوی محصول</label>
+                            <div class="search-container">
+                                <input type="text" id="productSearch" class="form-control" placeholder="نام محصول را جستجو کنید...">
+                                <div id="searchResults" class="search-results"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productQuantity" class="form-label">تعداد</label>
+                            <input type="number" id="productQuantity" class="form-control" min="1" value="1" placeholder="تعداد">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productPrice" class="form-label">قیمت واحد</label>
+                            <input type="text" id="productPrice" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="productTotal" class="form-label">قیمت کل</label>
+                            <input type="text" id="productTotal" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-1">
+                            <button id="addToOrder" class="btn btn-primary w-100">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive order-table">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>تصویر</th>
+                                <th>نام محصول</th>
+                                <th>تعداد</th>
+                                <th>قیمت واحد</th>
+                                <th>قیمت کل</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderItems">
+                            <!-- سفارشات اینجا نمایش داده می‌شوند -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="4" class="text-end">جمع کل:</td>
+                                <td id="grandTotal">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="tableNumber" class="form-label">شماره میز</label>
+                        <input type="number" id="tableNumber" class="form-control" min="1" max="100" placeholder="شماره میز">
+                    </div>
+                    <div class="col-md-8">
+                        <label for="customerNote" class="form-label">توضیحات سفارش (اختیاری)</label>
+                        <input type="text" id="customerNote" class="form-control" placeholder="توضیحات سفارش...">
+                    </div>
+                </div>
+                
+                <button id="submitOrder" class="btn btn-success submit-btn">
+                    <i class="fas fa-paper-plane me-2"></i>ارسال سفارش
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <!-- jQuery -->
+    <script src="jquery.js"></script>
+    <!-- Bootstrap 5 JS -->
+    <script src="bootstrap.js"></script>
+    <!-- <script src="io.js"></script> -->
+    <script src="alert.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // ذخیره محصولات در localStorage
+            let products = [];
+            
+            // لیست سفارشات
+            let orderItems = [];
+            
+      function loadProducts() {
+   
+    const cachedProducts = localStorage.getItem('cafeProducts')
+    $.ajax({
+        url: localStorage.url + '/products/list',
+        method: 'GET',
+        success: function(data) {
+            if (data && Array.isArray(data)) {
+                products = data.map(p => ({
+                    ...p,
+                    // مطمئن شویم isAvailable وجود دارد
+                    isAvailable: p.isAvailable !== false
+                }));
+                localStorage.setItem('cafeProducts', JSON.stringify(products));
+                console.log('محصولات از سرور دریافت و ذخیره شدند:', products);
+            } else {
+                console.error('داده دریافتی نامعتبر است:', data);
+            }
+        },
+        error: function(error) {
+            console.error('خطا در دریافت محصولات:', error);
+            // استفاده از داده‌های پیش‌فرض در صورت خطا
+            products = [];
+        }
+    });
+}
+            
+            // بارگیری اولیه محصولات
+            loadProducts();
+            
+            // جستجوی محصول
+            $('#productSearch').on('input', async function() {
+                const searchTerm = $(this).val().trim().toLowerCase();
+                const resultsContainer = $('#searchResults');
+                
+                if (searchTerm.length < 2) {
+                    resultsContainer.hide();
+                    return;
+                }
+           
+                // فیلتر کردن محصولات بر اساس عبارت جستجو
+                const filteredProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) 
+                );
+                console.log(' filteredProducts :' ,  filteredProducts )
+                
+                // نمایش نتایج
+                if (filteredProducts.length > 0) {
+                    let html = '';
+                    filteredProducts.forEach(product => {
+                        html += `
+                            <div class="search-item" data-id="${product.id}" 
+                                 data-name="${product.name}" 
+                                 data-price="${product.price}">
+                                <div class="d-flex align-items-center">
+                                    ${product.img ? `<img src="${localStorage.url + product.img}" class="product-img me-2" alt="${product.name}">` : ''}
+                                    <div>
+                                        <h6 class="mb-0">${product.name}</h6>
+                                        <small class="text-muted">${product.price.toLocaleString()} تومان - ${product.category}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    resultsContainer.html(html).show();
+                } else {
+                    resultsContainer.html('<div class="search-item text-muted p-3">محصولی یافت نشد</div>').show();
+                }
+            });
+            
+            // انتخاب محصول از نتایج جستجو
+            $(document).on('click', '.search-item', function() {
+                const productId = $(this).data('id');
+                const productName = $(this).data('name');
+                const productPrice = $(this).data('price');
+                
+                $('#productSearch').val(productName).attr('data-id', productId);
+                $('#productPrice').val(productPrice.toLocaleString());
+                $('#productQuantity').val(1).focus();
+                calculateTotal();
+                $('#searchResults').hide();
+            });
+            
+            // محاسبه قیمت کل
+            function calculateTotal() {
+                const quantity = parseInt($('#productQuantity').val()) || 1;
+                const price = parseFloat($('#productPrice').val().replace(/,/g, '')) || 0;
+                const total = quantity * price;
+                
+                $('#productTotal').val(total.toLocaleString());
+            }
+            
+            // تغییر تعداد
+            $('#productQuantity').on('input', calculateTotal);
+            
+            // اضافه کردن محصول به سفارش
+            $('#addToOrder').on('click', function() {
+                addToOrder();
+            });
+            
+            // با زدن اینتر روی تعداد، محصول اضافه می‌شود
+            $('#productQuantity').on('keypress', function(e) {
+                if (e.which === 13) {
+                    addToOrder();
+                    return false;
+                }
+            });
+            
+            // تابع اضافه کردن محصول به سفارش
+            function addToOrder() {
+                const productId = $('#productSearch').attr('data-id');
+                const productName = $('#productSearch').val();
+                const priceText = $('#productPrice').val();
+                const quantity = parseInt($('#productQuantity').val()) || 1;
+                
+                if (!productId || !productName || !priceText) {
+                    alert('لطفاً ابتدا یک محصول انتخاب کنید');
+                    return;
+                }
+                
+                const price = parseFloat(priceText.replace(/,/g, ''));
+                const total = price * quantity;
+                
+                // پیدا کردن تصویر محصول
+                const product = products.find(p => p.id == productId);
+                const productImg = product?.img || '';
+                
+                // اضافه کردن به لیست سفارشات
+                orderItems.push({
+                    id: productId,
+                    name: productName,
+                    img: productImg,
+                    price: price,
+                    quantity: quantity,
+                    total: total
+                });
+                
+                // رندر کردن جدول سفارشات
+                renderOrderItems();
+                
+                // ریست کردن فرم
+                resetForm();
+            }
+            
+            // رندر کردن لیست سفارشات
+            function renderOrderItems() {
+                const tbody = $('#orderItems');
+                tbody.empty();
+                
+                let grandTotal = 0;
+                
+                orderItems.forEach((item, index) => {
+                    grandTotal += item.total;
+                    
+                    tbody.append(`
+                        <tr>
+                            <td>
+                                ${item.img ? `<img src="${item.img}" class="product-img" alt="${item.name}">` : ''}
+                            </td>
+                            <td>${item.name}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.price.toLocaleString()}</td>
+                            <td>${item.total.toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm remove-item" data-index="${index}">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+                
+                // به‌روزرسانی جمع کل
+                $('#grandTotal').text(grandTotal.toLocaleString());
+            }
+            
+            // حذف آیتم از سفارش
+            $(document).on('click', '.remove-item', function() {
+                const index = $(this).data('index');
+                orderItems.splice(index, 1);
+                renderOrderItems();
+            });
+            
+            // ریست کردن فرم
+            function resetForm() {
+                $('#productSearch').val('').removeAttr('data-id');
+                $('#productPrice').val('');
+                $('#productQuantity').val(1);
+                $('#productTotal').val('');
+                $('#productSearch').focus();
+            }
+            
+            // ارسال سفارش
+            $('#submitOrder').on('click',async function() {
+                const tableNumber = $('#tableNumber').val();
+                
+                if (orderItems.length === 0) {
+                    alert('لطفاً حداقل یک محصول به سفارش اضافه کنید');
+                    return;
+                }
+                
+                if (!tableNumber || tableNumber < 1 || tableNumber > 100) {
+                    alert('لطفاً شماره میز را وارد کنید (بین 1 تا 100)');
+                    return;
+                }
+                
+                const customerNote = $('#customerNote').val();
+                
+                // آماده کردن داده‌های سفارش
+                const orderData = {
+                    tableNumber: parseInt(tableNumber),
+                    products: orderItems.map(item => ({
+                        productId: item.id,
+                        quantity: item.quantity,
+                        specialRequest: ''
+                    })),
+                    customerNote: customerNote
+                };
+                try {
+                    const request = await fetch(localStorage.url + '/guest-order',{
+                        method: 'POST',
+                        body: JSON.stringify( orderData ),
+                        headers: {
+                            'Authorization':`Bearer ${localStorage.getItem('token')}`,
+                            "Content-Type" : 'application/json'
+                    }
+                })
+                const responseData = await request.json();
+                console.log(' orderData :' ,  orderData )
+                } catch (error) {
+                   console.log(' error :' ,  error )
+                    
+                }
+                
+                
+               
+                // نمایش پیام موفقیت
+                // alert('سفارش شما با موفقیت ثبت شد و در حال آماده‌سازی است');
+                const msg = ('سفارش شما با موفقیت ثبت شد و در حال آماده‌سازی است');
+                Swal.fire({
+            title: 'موفقیت!',
+            text: msg,
+            icon: 'success',
+            confirmButtonText: 'باشه',
+            timer: 2000
+        });
+                // ریست کردن فرم
+                orderItems = [];
+                renderOrderItems();
+                $('#tableNumber').val('');
+                $('#customerNote').val('');
+            });
+            
+         const inp =document.querySelectorAll('input');
+         inp.forEach(x=>{
+            x.addEventListener('click',(e)=>{
+                x.value = ""
+            })
+         })
+         inp.forEach(x=>{
+            x.addEventListener('focus',()=>{
+                x.value = ""
+            })
+         })
+        });
+    </script>
+</body>
+</html>
+        </div>
+        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+            <h4>محتوای تب سوم</h4>
+            <p>این محتوای تب سوم است. اینجا می‌توانید فرم‌ها یا لینک‌های تماس را قرار دهید.</p>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery و Bootstrap JS -->
+<script src="jquery.js"></script>
+<script src="pooper.js"></script>
+<script src="bootstrap.js"></script>
+
+</body>
+</html>

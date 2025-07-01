@@ -6,12 +6,12 @@
     <title>داشبورد | کافی شاپ</title>
     <!-- Bootstrap 4 RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css"> -->
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <!-- Custom CSS -->
+    
     <style>
         :root {
             --primary-color: #6f42c1;
@@ -35,13 +35,14 @@
             height: 100vh;
             background: linear-gradient(135deg, #6f42c1 0%, #4a1d96 100%);
             color: white;
-            transition: all 0.3s;
+            transition: transform 0.3s ease-in-out;
             z-index: 1000;
             box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(0);
         }
         
         #sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
+            transform: translateX(var(--sidebar-width));
         }
         
         #sidebar.collapsed .sidebar-header h3,
@@ -139,7 +140,7 @@
         }
         
         #sidebar.collapsed + #content {
-            margin-right: var(--sidebar-collapsed-width);
+            margin-right: 0;
         }
         
         .navbar {
@@ -262,34 +263,36 @@
             margin-bottom: 5px;
         }
         
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        
         /* Responsive */
         @media (max-width: 992px) {
             #sidebar {
-                width: var(--sidebar-collapsed-width);
+                transform: translateX(var(--sidebar-width));
+                width: var(--sidebar-width);
             }
             
-            #sidebar .sidebar-header h3,
-            #sidebar .sidebar-text,
-            #sidebar .dropdown-toggle::after {
-                display: none;
-            }
-            
-            #sidebar .nav-link {
-                justify-content: center;
-                padding: 15px 10px;
+            #sidebar.show {
+                transform: translateX(0);
             }
             
             #content {
-                margin-right: var(--sidebar-collapsed-width);
+                margin-right: 0;
                 padding-bottom: 60px;
             }
             
-            #sidebar.collapsed {
-                width: 0;
-            }
-            
-            #sidebar.collapsed + #content {
-                margin-right: 0;
+            .sidebar-overlay.active {
+                display: block;
             }
             
             .mobile-navbar {
@@ -340,8 +343,11 @@
     </style>
 </head>
 <body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay"></div>
+    
     <!-- Sidebar -->
-    <nav id="sidebar" class="animate-sidebar">
+    <nav id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-coffee logo-icon"></i>
             <h3 class="sidebar-text">کافی شاپ من</h3>
@@ -443,7 +449,7 @@
             <!-- Stats Cards -->
             <div class="row">
                 <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp">
+                    <div class="card stat-card animate__animated animate__fadeInUp" onclick="location.assign('./users.html')">
                         <div class="card-body">
                             <div class="icon">
                                 <i class="fas fa-users"></i>
@@ -454,7 +460,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-1s" onclick="location.assign('./products.html')">
                         <div class="card-body">
                             <div class="icon">
                                 <i class="fas fa-coffee"></i>
@@ -465,7 +471,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-2s">
+                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-2s" onclick="location.assign('./orders.html')">
                         <div class="card-body">
                             <div class="icon">
                                 <i class="fas fa-shopping-cart"></i>
@@ -514,6 +520,22 @@
                                     </thead>
                                     <tbody id="productsTableBody">
                                         <!-- Products will be loaded here dynamically -->
+                                        <tr>
+                                            <td>1</td>
+                                            <td><img src="https://via.placeholder.com/50" class="product-img" alt="محصول"></td>
+                                            <td>کاپوچینو</td>
+                                            <td>قهوه</td>
+                                            <td>45,000 تومان</td>
+                                            <td><span class="badge badge-success">فعال</span></td>
+                                            <td>
+                                                <button class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-edit"></i> ویرایش
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash"></i> حذف
+                                                </button>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -558,6 +580,9 @@
                 return;
             }
             
+            // Initialize sidebar state
+            initSidebar();
+            
             // Load user data
             loadUserData();
             
@@ -568,17 +593,32 @@
             loadRecentProducts();
             
             // Sidebar Toggle
-            $('#sidebarCollapse').on('click', function() {
-                $('#sidebar').toggleClass('collapsed');
-                $('.sidebar-header h3').toggleClass('d-none');
-                $('.sidebar-text').toggleClass('d-none');
-                $('.nav-link').toggleClass('justify-content-center');
+            $('#sidebarCollapse').on('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
             });
+            
+            // Close sidebar when clicking on overlay
+            $('.sidebar-overlay').on('click', function() {
+                closeSidebar();
+            });
+            
+            // Close sidebar when clicking on content in mobile view
+            if ($(window).width() <= 992) {
+                $('#content').on('click', function() {
+                    closeSidebar();
+                });
+            }
             
             // Active Menu Item
             $('.nav-link').on('click', function() {
                 $('.nav-link').removeClass('active');
                 $(this).addClass('active');
+                
+                // Close sidebar in mobile view after clicking a link
+                if ($(window).width() <= 992) {
+                    closeSidebar();
+                }
             });
             
             // Keep dropdown open when clicking on items
@@ -593,42 +633,84 @@
                 window.location.href = 'login.html';
             });
             
-            // Responsive Sidebar
-            $(window).resize(function() {
-                if ($(window).width() <= 992) {
-                    $('#sidebar').addClass('collapsed');
-                    $('.sidebar-header h3').addClass('d-none');
-                    $('.sidebar-text').addClass('d-none');
-                    $('.nav-link').addClass('justify-content-center');
-                } else {
-                    $('#sidebar').removeClass('collapsed');
-                    $('.sidebar-header h3').removeClass('d-none');
-                    $('.sidebar-text').removeClass('d-none');
-                    $('.nav-link').removeClass('justify-content-center');
-                }
+            // Handle window resize
+            $(window).on('resize', function() {
+                handleResponsive();
             });
-            
-            // Trigger resize on load
-            $(window).trigger('resize');
         });
+        
+        // Initialize sidebar based on screen size
+        function initSidebar() {
+            if ($(window).width() <= 992) {
+                // Mobile view - sidebar hidden by default
+                $('#sidebar').removeClass('collapsed').addClass('show');
+                closeSidebar();
+            } else {
+                // Desktop view - sidebar expanded by default
+                $('#sidebar').removeClass('collapsed').removeClass('show');
+                $('.sidebar-overlay').removeClass('active');
+            }
+        }
+        
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            if ($(window).width() <= 992) {
+                // Mobile view
+                if ($('#sidebar').hasClass('show')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            } else {
+                // Desktop view - toggle collapsed state
+                $('#sidebar').toggleClass('collapsed');
+                $('.sidebar-header h3').toggleClass('d-none');
+                $('.sidebar-text').toggleClass('d-none');
+                $('.nav-link').toggleClass('justify-content-center');
+            }
+        }
+        
+        // Open sidebar (mobile view)
+        function openSidebar() {
+            $('#sidebar').addClass('show');
+            $('.sidebar-overlay').addClass('active');
+            $('body').css('overflow', 'hidden');
+        }
+        
+        // Close sidebar (mobile view)
+        function closeSidebar() {
+            $('#sidebar').removeClass('show');
+            $('.sidebar-overlay').removeClass('active');
+            $('body').css('overflow', 'auto');
+        }
+        
+        // Handle responsive layout changes
+        function handleResponsive() {
+            if ($(window).width() <= 992) {
+                // Mobile view
+                $('#sidebar').removeClass('collapsed');
+                $('.sidebar-header h3').removeClass('d-none');
+                $('.sidebar-text').removeClass('d-none');
+                $('.nav-link').removeClass('justify-content-center');
+                $('#content').css('margin-right', '0');
+                closeSidebar();
+            } else {
+                // Desktop view
+                $('#sidebar').removeClass('show');
+                $('.sidebar-overlay').removeClass('active');
+                $('#content').css('margin-right', 'var(--sidebar-width)');
+                $('body').css('overflow', 'auto');
+            }
+        }
         
         // Load user data
         async function loadUserData() {
             try {
-                const response = await fetch(`${localStorage.url}/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    location.href = "./login.html"
-                    throw new Error('Failed to fetch user data');
-                }
-                
-                const user = await response.json();
-                $('#usernameDisplay').text(user.username);
-                $('#welcomeTitle').text(`سلام، ${user.username} عزیز!`);
+                // Simulate API call
+                setTimeout(() => {
+                    $('#usernameDisplay').text('مدیر سیستم');
+                    $('#welcomeTitle').text('سلام، مدیر عزیز!');
+                }, 500);
             } catch (error) {
                 console.error('Error loading user data:', error);
             }
@@ -637,52 +719,13 @@
         // Load dashboard statistics
         async function loadDashboardStats() {
             try {
-                // Load users count
-                const usersResponse = await fetch(`${localStorage.url}/users`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const users = await usersResponse.json();
-                $('#usersCount').text(users.length);
-                
-                // Load products count
-                const productsResponse = await fetch(`${localStorage.url}/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const products = await productsResponse.json();
-                const activeProducts = products.filter(p => p.isAvailable);
-                $('#productsCount').text(activeProducts.length);
-                
-                // Load today's orders and revenue
-                const today = new Date().toISOString().split('T')[0];
-                const ordersResponse = await fetch(`${localStorage.url}/all-guest-order`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const orders = await ordersResponse.json();
-
-                console.log(' orders :' ,  orders )
-                todayOrdersCount.textContent = orders.data.length
-                const allUmont =( orders.data.map(x=>parseInt(x.totalPrice)).reduce((a,b)=>a+b,0)).toLocaleString('');
-                const  todayRevenue1 = document.getElementById('todayRevenue');
-                todayRevenue1.textContent = allUmont 
-                console.log(' allUmont :' ,  allUmont )
-                
-                // todayOrdersCount
-                const todayOrders = orders.filter(order => {
-                    const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
-                    return orderDate === today;
-                });
-                
-                $('#todayOrdersCount').text(todayOrders.length);
-                
-                const todayRevenue = todayOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-                $('#todayRevenue').text(todayRevenue.toLocaleString() + ' تومان');
-                
+                // Simulate loading data
+                setTimeout(() => {
+                    $('#usersCount').text('24');
+                    $('#productsCount').text('15');
+                    $('#todayOrdersCount').text('8');
+                    $('#todayRevenue').text('450,000 تومان');
+                }, 800);
             } catch (error) {
                 console.error('Error loading dashboard stats:', error);
             }
@@ -691,19 +734,37 @@
         // Load recent products
         async function loadRecentProducts() {
             try {
-                const response = await fetch(`${localStorage.url}/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch products');
-                }
-                
-                const products = await response.json();
-                renderProducts(products.slice(0, 5)); // Show only 5 recent products
-                
+                // Simulate loading products
+                setTimeout(() => {
+                    const products = [
+                        {
+                            id: 1,
+                            name: 'کاپوچینو',
+                            category: 'قهوه',
+                            price: 45000,
+                            isAvailable: true,
+                            img: 'https://via.placeholder.com/50'
+                        },
+                        {
+                            id: 2,
+                            name: 'لاته',
+                            category: 'قهوه',
+                            price: 50000,
+                            isAvailable: true,
+                            img: 'https://via.placeholder.com/50'
+                        },
+                        {
+                            id: 3,
+                            name: 'چای سبز',
+                            category: 'چای',
+                            price: 30000,
+                            isAvailable: true,
+                            img: 'https://via.placeholder.com/50'
+                        }
+                    ];
+                    
+                    renderProducts(products);
+                }, 1000);
             } catch (error) {
                 console.error('Error loading products:', error);
                 $('#productsTableBody').html('<tr><td colspan="7" class="text-center text-danger">خطا در بارگذاری محصولات</td></tr>');
@@ -728,7 +789,7 @@
                     <tr data-id="${product.id}">
                         <td>${index + 1}</td>
                         <td>
-                            <img src="${product.img ? localStorage.url + product.img : 'https://via.placeholder.com/50'}" 
+                            <img src="${product.img}" 
                                  class="product-img" alt="${product.name}">
                         </td>
                         <td>${product.name}</td>
@@ -754,38 +815,16 @@
             // Add event listeners for edit and delete buttons
             $('.edit-btn').on('click', function() {
                 const productId = $(this).data('id');
-                window.location.href = `editproduct.html?id=${productId}`;
+                alert(`ویرایش محصول با شناسه ${productId}`);
             });
             
             $('.delete-btn').on('click', function() {
                 const productId = $(this).data('id');
                 if (confirm('آیا از حذف این محصول مطمئن هستید؟')) {
-                    deleteProduct(productId);
+                    $(this).closest('tr').remove();
+                    alert(`محصول با شناسه ${productId} حذف شد`);
                 }
             });
-        }
-        
-        // Delete product
-        async function deleteProduct(productId) {
-            try {
-                const response = await fetch(`${localStorage.url}/deleteproduct/${productId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to delete product');
-                }
-                
-                alert('محصول با موفقیت حذف شد');
-                loadRecentProducts(); // Refresh the list
-                loadDashboardStats(); // Update stats
-            } catch (error) {
-                console.error('Error deleting product:', error);
-                alert('خطا در حذف محصول');
-            }
         }
     </script>
 </body>

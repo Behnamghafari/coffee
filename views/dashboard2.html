@@ -3,548 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد | کافی شاپ</title>
-    <!-- Bootstrap 4 RTL -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-v4-rtl@4.6.0-1/dist/css/bootstrap-rtl.min.css">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <!-- Custom CSS -->
+    <title>مدیریت کاربران</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         :root {
             --primary-color: #6f42c1;
             --secondary-color: #f8f9fa;
-            --sidebar-width: 280px;
-            --sidebar-collapsed-width: 80px;
         }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f7fa;
-            overflow-x: hidden;
+            padding: 15px;
         }
         
-        /* Sidebar Styles */
-        #sidebar {
-            width: var(--sidebar-width);
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100vh;
-            background: linear-gradient(135deg, #6f42c1 0%, #4a1d96 100%);
-            color: white;
-            transition: all 0.3s;
-            z-index: 1000;
-            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        #sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
-        
-        #sidebar.collapsed .sidebar-header h3,
-        #sidebar.collapsed .sidebar-text,
-        #sidebar.collapsed .dropdown-toggle::after {
-            display: none;
-        }
-        
-        #sidebar.collapsed .nav-link {
-            justify-content: center;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .sidebar-header h3 {
-            margin-bottom: 0;
-            margin-right: 10px;
-            font-weight: 600;
-        }
-        
-        .sidebar-header .logo-icon {
-            font-size: 1.8rem;
-        }
-        
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        
-        .nav-link:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            text-decoration: none;
-        }
-        
-        .nav-link.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .nav-link .icon {
-            margin-left: 10px;
-            font-size: 1.2rem;
-            min-width: 20px;
-            text-align: center;
-        }
-        
-        .sidebar-text {
-            font-weight: 500;
-        }
-        
-        /* Dropdown Menu */
-        .dropdown-menu {
-            background-color: rgba(0, 0, 0, 0.2);
-            border: none;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-        }
-        
-        .dropdown-item {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 10px 15px 10px 45px;
-        }
-        
-        .dropdown-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        
-        .dropdown-toggle::after {
-            margin-right: auto;
-            margin-left: 10px;
-            transition: transform 0.3s;
-        }
-        
-        .dropdown.show .dropdown-toggle::after {
-            transform: rotate(90deg);
-        }
-        
-        /* Content Styles */
-        #content {
-            margin-right: var(--sidebar-width);
-            padding: 20px;
-            min-height: 100vh;
-            transition: all 0.3s;
-        }
-        
-        #sidebar.collapsed + #content {
-            margin-right: var(--sidebar-collapsed-width);
-        }
-        
-        .navbar {
+        .user-table {
             background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
         
-        .navbar .btn-toggle {
-            border: none;
-            background: transparent;
-            color: var(--primary-color);
-            font-size: 1.5rem;
+        .user-table th {
+            background-color: var(--primary-color);
+            color: white;
+            white-space: nowrap;
+        }
+        
+        .badge-admin {
+            background-color: #6f42c1;
+            color: white;
+        }
+        
+        .badge-user {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .badge-active {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .badge-banned {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .password-toggle {
             cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .user-profile {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-        
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-header {
-            background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-weight: 600;
-            border-radius: 10px 10px 0 0 !important;
-        }
-        
-        .stat-card {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .stat-card .icon {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-        
-        .stat-card .value {
-            font-size: 2rem;
-            font-weight: 700;
+        .password-toggle:hover {
             color: var(--primary-color);
         }
-        
-        .stat-card .label {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-        
-        .welcome-card {
-            background: linear-gradient(135deg, #6f42c1 0%, #8e63d2 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .welcome-card h3 {
-            font-weight: 600;
-        }
-        
-        .welcome-card p {
-            opacity: 0.9;
-        }
-        
-        /* Product Table */
-        .product-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-        
-        /* Responsive */
+
+        /* استایل‌های ریسپانسیو */
         @media (max-width: 768px) {
-            #sidebar {
-                width: var(--sidebar-collapsed-width);
+            body {
+                padding: 10px;
             }
             
-            #sidebar .sidebar-header h3,
-            #sidebar .sidebar-text,
-            #sidebar .dropdown-toggle::after {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .table-responsive {
+                border: none;
+            }
+            
+            .user-table {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .table th, .table td {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+            }
+            
+            .edit-user-btn {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .table thead {
                 display: none;
             }
             
-            #sidebar .nav-link {
-                justify-content: center;
+            .table tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
             }
             
-            #content {
-                margin-right: var(--sidebar-collapsed-width);
+            .table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem;
+                border: none;
+                border-bottom: 1px solid #f0f0f0;
             }
             
-            #sidebar.collapsed {
-                width: 0;
+            .table td:before {
+                content: attr(data-label);
+                font-weight: bold;
+                margin-left: 10px;
+                color: var(--primary-color);
             }
             
-            #sidebar.collapsed + #content {
-                margin-right: 0;
+            .table td:last-child {
+                border-bottom: none;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem auto;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <nav id="sidebar" class="animate-sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-coffee logo-icon"></i>
-            <h3 class="sidebar-text">کافی شاپ من</h3>
+    <div class="container-fluid">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-users me-2"></i>مدیریت کاربران
+        </h1>
+        
+        <div class="table-responsive user-table">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نام کاربری</th>
+                        <th>ایمیل</th>
+                        <th>نقش</th>
+                        <th>وضعیت</th>
+                        <th>تاریخ ثبت‌نام</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- کاربران اینجا نمایش داده می‌شوند -->
+                </tbody>
+            </table>
         </div>
-        
-        <ul class="list-unstyled components">
-            <li class="active">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-tachometer-alt icon"></i>
-                    <span class="sidebar-text">داشبورد</span>
-                </a>
-            </li>
-            <li>
-                <a href="users.html" class="nav-link">
-                    <i class="fas fa-users icon"></i>
-                    <span class="sidebar-text">لیست کاربران</span>
-                </a>
-            </li>
-            <li>
-                <a class="nav-link dropdown-toggle" href="#productSubmenu" data-toggle="collapse" aria-expanded="false">
-                    <i class="fas fa-coffee icon"></i>
-                    <span class="sidebar-text">محصولات</span>
-                </a>
-                <ul class="collapse list-unstyled" id="productSubmenu">
-                    <li>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-list icon"></i>
-                            <span class="sidebar-text">لیست محصولات</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="newproduct.html" class="dropdown-item">
-                            <i class="fas fa-plus-circle icon"></i>
-                            <span class="sidebar-text">افزودن محصول</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-shopping-cart icon"></i>
-                    <span class="sidebar-text">لیست سفارشات</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-chart-line icon"></i>
-                    <span class="sidebar-text">آمار و گزارشات</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-cog icon"></i>
-                    <span class="sidebar-text">تنظیمات</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-sign-out-alt icon"></i>
-                    <span class="sidebar-text">خروج</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    
-    <!-- Content -->
-    <div id="content">
-        <!-- Top Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-light mb-4">
-            <div class="container-fluid">
-                <button type="button" id="sidebarCollapse" class="btn btn-toggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <div class="d-flex align-items-center">
-                    <div class="user-profile">
-                        <img src="https://via.placeholder.com/40" alt="User Profile">
-                        <span>مدیر سیستم</span>
-                    </div>
+    </div>
+
+    <!-- مودال ویرایش کاربر -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ویرایش کاربر</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-        </nav>
-        
-        <!-- Dashboard Content -->
-        <div class="container-fluid">
-            <!-- Welcome Card -->
-            <div class="welcome-card animate__animated animate__fadeIn">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h3>سلام، مدیر عزیز!</h3>
-                        <p>به پنل مدیریت کافی شاپ خوش آمدید. اینجا می‌توانید تمام جنبه‌های کسب و کار خود را مدیریت کنید.</p>
-                    </div>
-                    <div class="col-md-4 text-left">
-                        <i class="fas fa-coffee fa-4x" style="opacity: 0.2;"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Stats Cards -->
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp">
-                        <div class="card-body">
-                            <div class="icon">
-                                <i class="fas fa-users"></i>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 col-12">
+                                <label for="editUsername" class="form-label">نام کاربری</label>
+                                <input type="text" class="form-control" id="editUsername" disabled>
                             </div>
-                            <div class="value">124</div>
-                            <div class="label">کاربران ثبت‌نام شده</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-1s">
-                        <div class="card-body">
-                            <div class="icon">
-                                <i class="fas fa-coffee"></i>
-                            </div>
-                            <div class="value">42</div>
-                            <div class="label">محصولات فعال</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-2s">
-                        <div class="card-body">
-                            <div class="icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div class="value">356</div>
-                            <div class="label">سفارشات امروز</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card stat-card animate__animated animate__fadeInUp animate__delay-3s">
-                        <div class="card-body">
-                            <div class="icon">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </div>
-                            <div class="value">12,450,000</div>
-                            <div class="label">درآمد امروز</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Recent Products -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <div class="card animate__animated animate__fadeIn">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5>آخرین محصولات اضافه شده</h5>
-                            <a href="newproduct.html" class="btn btn-sm btn-primary">
-                                <i class="fas fa-plus"></i> افزودن محصول جدید
-                            </a>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover table-sm">
-                                    <thead>
-                                        <tr><th>ردیف</th>
-                                            <th>تصویر</th>
-                                            <th>نام محصول</th>
-                                            <th>دسته‌بندی</th>
-                                            <th>قیمت</th>
-                                            <!-- <th>موجودی</th> -->
-                                            <th>وضعیت</th>
-                                            <th>عملیات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="productsTableBody">
-                                     
-                                    </tbody>
-                                </table>
+                            <div class="col-md-6 col-12 mt-3 mt-md-0">
+                                <label for="editEmail" class="form-label">ایمیل</label>
+                                <input type="email" class="form-control" id="editEmail" disabled>
                             </div>
                         </div>
-                    </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 col-12">
+                                <label for="editRole" class="form-label">نقش</label>
+                                <select class="form-select" id="editRole">
+                                    <option value="modir">مدیر اصلی</option>
+                                    <option value="superAdmin">سوپر ادمین</option>
+                                    <option value="admin">ادمین</option>
+                                    <option value="user">کاربر عادی</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12 mt-3 mt-md-0">
+                                <label for="editIsActive" class="form-label">وضعیت حساب</label>
+                                <select class="form-select" id="editIsActive">
+                                    <option value="true">فعال</option>
+                                    <option value="false">غیرفعال</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editBanReason" class="form-label">دلیل مسدودسازی (اختیاری)</label>
+                            <textarea class="form-control" id="editBanReason" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">
+                                رمز عبور جدید 
+                                <small class="text-muted">(در صورت تمایل به تغییر)</small>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="editPassword">
+                                <span class="input-group-text password-toggle">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            </div>
+                            <div class="form-text">حداقل ۶ کاراکتر</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-primary" id="saveUserChanges">ذخیره تغییرات</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- jQuery, Popper.js, Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
-    
-    <!-- Custom JS -->
+    <!-- اسکریپت‌ها -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="menu.js"></script>
     <script>
         $(document).ready(function() {
-            // Sidebar Toggle
-            $('#sidebarCollapse').on('click', function() {
-                $('#sidebar').toggleClass('collapsed');
-                $('.sidebar-header h3').toggleClass('d-none');
-                $('.sidebar-text').toggleClass('d-none');
-                $('.nav-link').toggleClass('justify-content-center');
-            });
+            const editUserModal = new bootstrap.Modal('#editUserModal');
+            let users = [];
             
-            // Active Menu Item
-            $('.nav-link').on('click', function() {
-                $('.nav-link').removeClass('active');
-                $(this).addClass('active');
-            });
-            
-            // Keep dropdown open when clicking on items
-            $('.dropdown-item').on('click', function(e) {
-                e.stopPropagation();
-            });
-            
-            // Responsive Sidebar
-            $(window).resize(function() {
-                if ($(window).width() <= 768) {
-                    $('#sidebar').addClass('collapsed');
-                    $('.sidebar-header h3').addClass('d-none');
-                    $('.sidebar-text').addClass('d-none');
-                    $('.nav-link').addClass('justify-content-center');
-                } else {
-                    $('#sidebar').removeClass('collapsed');
-                    $('.sidebar-header h3').removeClass('d-none');
-                    $('.sidebar-text').removeClass('d-none');
-                    $('.nav-link').removeClass('justify-content-center');
+            // تابع بارگیری کاربران
+            async function loadUsers() {
+                try {
+                    const response = await fetch(localStorage.url + '/users', {
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('خطا در دریافت کاربران');
+                    
+                    const data = await response.json();
+                    users = data;
+                    renderUsers();
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در دریافت لیست کاربران پیش آمد'
+                    });
                 }
-            });
-            
-            // Trigger resize on load
-            $(window).trigger('resize');
-        });
-        tableHandler()
-      async  function  tableHandler (){
-              // در حالت واقعی اینجا باید از API داده‌ها را بگیرید
-                const response = await fetch(localStorage.url + '/products',{
-                     headers: {
-                    'Authorization':`Bearer ${localStorage.getItem('token')}`,
-                    "Content-Type" : 'application/json'
-                }
-                });
-                const products = await response.json();
-                console.log(' products :' ,  products )
-                
-                renderProducts(products)
-        }
-    const  productsTableBody = document.getElementById('productsTableBody');
-      function renderProducts(products) {
-            if (products.length === 0) {
-                $('#productsTableBody').html('<tr><td colspan="8" class="text-center">محصولی یافت نشد</td></tr>');
-                return;
             }
             
-            let html = '';
-            products.forEach((product, index) => {
-                            console.log(' {product.img:' , ` ${product.img?localStorage.url+product.img : "#"}` )
-                            
-                productsTableBody.insertAdjacentHTML('beforeend', `
-                    <tr data-id="${product.id}">
-                        <td>${index + 1}</td>
-                        <td><img src=${product.img?localStorage.url+product.img : "#"} class="product-img" alt="${product.name}"></td>
-                        <td>${product.name}</td>
-                        <td>${product.category}</td>
-                        <td>${product.price.toLocaleString()} تومان</td>
-                        
-                        <td>
-                            <span class="status-badge ${product.isAvailable ? 'status-active' : 'status-inactive'}">
-                                ${product.isAvailable ? 'فعال' : 'غیرفعال'}
-                            </span>
-                        </td>
-                        <td class="action-btns">
-                            <button class="btn btn-outline-primary edit-btn">
-                                <i class="fas fa-edit"></i> ویرایش
-                            </button>
-                            <button class="btn btn-outline-danger delete-btn">
-                                <i class="fas fa-trash"></i> حذف
-                            </button>
-                        </td>
-                    </tr>
-                `)
+            // تابع نمایش کاربران در جدول
+            function renderUsers() {
+                const tbody = $('#usersTableBody');
+                tbody.empty();
+                
+                if (users.length === 0) {
+                    tbody.append(`
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-users-slash fa-2x mb-3"></i>
+                                <h5>هیچ کاربری یافت نشد</h5>
+                            </td>
+                        </tr>
+                    `);
+                    return;
+                }
+                
+                for (const [index, user] of users.entries()) {
+                    const registerDate = new Date(user.createdAt).toLocaleDateString('fa-IR');
+                    
+                    // برای نمایش موبایلی
+                    const mobileRow = `
+                        <tr>
+                            <td data-label="#">${index + 1}</td>
+                            <td data-label="نام کاربری">${user.username}</td>
+                            <td data-label="ایمیل">${user.email || '-'}</td>
+                            <td data-label="نقش">
+                                <span class="badge ${getRoleBadgeClass(user.role)}">
+                                    ${getRoleText(user.role)}
+                                </span>
+                            </td>
+                            <td data-label="وضعیت">
+                                <span class="badge ${user.isActive ? 'badge-active' : 'badge-banned'}">
+                                    ${user.isActive ? 'فعال' : 'مسدود'}
+                                </span>
+                            </td>
+                            <td data-label="تاریخ ثبت‌نام">${registerDate}</td>
+                            <td data-label="عملیات">
+                                <button class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                        data-user-id="${user.id}">
+                                    <i class="fas fa-edit"></i> ویرایش
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    tbody.append(mobileRow);
+                }
+            }
+            
+            // توابع کمکی
+            function getRoleBadgeClass(role) {
+                return role === 'user' ? 'badge-user' : 'badge-admin';
+            }
+            
+            function getRoleText(role) {
+                const roles = {
+                    'modir': 'مدیر اصلی',
+                    'superAdmin': 'سوپر ادمین',
+                    'admin': 'ادمین',
+                    'user': 'کاربر عادی'
+                };
+                return roles[role] || role;
+            }
+            
+            // مدیریت کلیک روی دکمه ویرایش
+            $(document).on('click', '.edit-user-btn', function() {
+                const userId = $(this).data('user-id');
+                const user = users.find(u => u.id == userId);
+                
+                if (!user) return;
+                
+                // پر کردن فرم مودال
+                $('#editUserId').val(user.id);
+                $('#editUsername').val(user.username);
+                $('#editEmail').val(user.email || '');
+                $('#editRole').val(user.role);
+                $('#editIsActive').val(user.isActive.toString());
+                $('#editBanReason').val(user.banReason || '');
+                $('#editPassword').val('');
+                
+                // نمایش مودال
+                editUserModal.show();
             });
             
-            // $('#productsTableBody').html(html);
-        }
-        
+            // نمایش/مخفی کردن رمز عبور
+            $(document).on('click', '.password-toggle', function() {
+                const input = $('#editPassword');
+                const icon = $(this).find('i');
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+            
+            // ذخیره تغییرات کاربر
+            $('#saveUserChanges').on('click', async function() {
+                const userId = $('#editUserId').val();
+                const userData = {
+                    role: $('#editRole').val(),
+                    isActive: $('#editIsActive').val() === 'true',
+                    banReason: $('#editBanReason').val(),
+                    password: $('#editPassword').val() || undefined
+                };
+                
+                try {
+                    const response = await fetch(`${localStorage.url}/users/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                    
+                    if (!response.ok) throw new Error('خطا در به‌روزرسانی کاربر');
+                    
+                    const data = await response.json();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'موفق',
+                        text: 'تغییرات با موفقیت ذخیره شد'
+                    });
+                    
+                    // بروزرسانی لیست کاربران
+                    await loadUsers();
+                    editUserModal.hide();
+                    
+                } catch (error) {
+                    console.error('خطا:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: 'مشکلی در ذخیره تغییرات پیش آمد'
+                    });
+                }
+            });
+            
+            // بارگیری اولیه کاربران
+            loadUsers();
+        });
     </script>
 </body>
 </html>
